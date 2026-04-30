@@ -1,0 +1,113 @@
+@reference "tailwindcss";
+
+/* TARJETAS DE PROGRAMA */
+.progCard {
+    @apply p-8 bg-[#111] rounded-2xl border border-white/5 cursor-pointer transition-all duration-300 hover:border-white/10;
+}
+
+.progActivo {
+    background: linear-gradient(145deg, #FFFFFF 0%, var(--accent-silver) 50%, #A8A9AD 100%);
+    border: none;
+    box-shadow: 0 10px 30px rgba(255, 255, 255, 0.2);
+    @apply scale-[1.08] z-10;
+}
+
+.progIcon {
+    color: var(--accent-silver);
+    filter: drop-shadow(0 0 8px rgba(188, 198, 204, 0.3));
+}
+
+.progActivo .progIcon {
+    color: #000000 !important;
+    filter: none;
+}
+
+.progTitle {
+    @apply text-sm font-black italic uppercase mb-2 tracking-wide;
+}
+
+.progActivo .progTitle {
+    color: #000000 !important;
+}
+
+.progDesc {
+    @apply text-xs text-gray-400 leading-relaxed;
+}
+
+.progActivo .progDesc {
+    color: #000000 !important;
+    @apply font-medium;
+}
+
+/* TARJETAS DE PRECIO */
+.priceCard {
+    @apply p-10 bg-[#0A0A0A] border border-white/5 rounded-3xl relative transition-all duration-500 flex flex-col h-full;
+}
+
+.pricePopular {
+    @apply bg-[#111] border-white/10 scale-105 z-10 py-12;
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
+}
+
+.priceName {
+    @apply text-gray-500 font-bold uppercase tracking-widest text-[10px] mb-6 text-center;
+}
+
+.pricePopular .priceName {
+    color: var(--accent-silver);
+    @apply font-black italic brightness-125;
+}
+
+.priceValue {
+    @apply flex items-start justify-center mb-10;
+}
+
+.currency {
+    @apply text-lg font-bold mt-2 text-gray-400;
+}
+
+.pricePopular .currency {
+    @apply text-white;
+}
+
+.amount {
+    @apply text-6xl font-black italic px-1;
+}
+
+.period {
+    @apply text-gray-500 text-xs mt-auto mb-2;
+}
+
+.benefitList {
+    @apply space-y-4 mb-10 flex-grow;
+}
+
+.benefitItem {
+    @apply flex items-center gap-3 text-xs text-gray-400;
+}
+
+.checkIcon {
+    color: var(--accent-silver);
+}
+
+.pricePopular .checkIcon {
+    color: var(--mercury-light);
+}
+
+.pricePopular .benefitItem {
+    @apply text-gray-300;
+}
+
+.selectBtn {
+    @apply w-full py-4 rounded-full border border-white/10 font-black uppercase text-[10px] tracking-widest transition-all duration-300;
+}
+
+.selectBtn:hover {
+    @apply bg-white/5;
+}
+
+.pricePopular .selectBtn {
+    background: linear-gradient(180deg, #FFFFFF 0%, var(--accent-silver) 100%);
+    @apply text-black border-transparent hover:brightness-110 mt-2 scale-105;
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+}

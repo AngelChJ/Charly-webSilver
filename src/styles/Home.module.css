@@ -1,0 +1,335 @@
+@reference "tailwindcss";
+
+:root {
+    --bg-primary: #080808;
+    --accent-silver: #BCC6CC;
+    --steel-dark: #808080;
+    --mercury-light: #D1D9DD;
+    /* El gris sutil para el brillo */
+}
+
+.container {
+    @apply min-h-screen bg-[#0A0A0A] text-white font-sans;
+}
+
+/* NAVBAR */
+.nav {
+    @apply flex justify-between items-center py-6 px-8 fixed w-full top-0 z-50 bg-[#0A0A0A]/90 backdrop-blur-md;
+}
+
+.logo {
+    @apply text-xl font-black italic tracking-tighter flex items-center gap-1;
+}
+
+.logo .silverText {
+    @apply text-xl font-black italic tracking-tighter flex items-center gap-1;
+    animation-duration: 3s;
+    opacity: 0.9;
+
+}
+
+.logoAccent {
+    @apply text-[#E5E5E5];
+}
+
+.navLinks {
+    @apply hidden md:flex items-center gap-8 text-[11px] font-bold tracking-widest text-gray-400 uppercase;
+}
+
+.navLinks a {
+    @apply hover:text-white transition-colors;
+}
+
+@media (max-width: 768px) {
+    .loginBtn {
+        /* Un poco más de opacidad en la sombra para que se note en pantallas pequeñas */
+        box-shadow:
+            0 4px 15px rgba(0, 0, 0, 0.4),
+            0 0 25px rgba(188, 198, 204, 0.4);
+    }
+}
+
+.loginBtn {
+    /* 1. Estructura y Tipografía */
+    @apply px-8 py-3 rounded-full text-xs font-black uppercase tracking-widest transition-all duration-300 flex items-center justify-center;
+
+    /* 2. El Efecto de Plata en el Fondo (Sin el clip: text) */
+    background-image: linear-gradient(180deg, #ffffffb9 0%, #BCC6CC 50%, #808080 100%);
+
+    /* 3. Color del Texto (Oscuro para contrastar con la plata) */
+    color: #000000;
+
+    /* 4. Profundidad: Sombra para que el botón "salte" de la pantalla */
+    box-shadow:
+        0 4px 15px rgba(0, 0, 0, 0.3),
+        0 0 20px rgba(188, 198, 204, 0.2);
+
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
+
+/* Efecto al pasar el mouse (Hover) */
+.loginBtn:hover {
+    /* Se vuelve un poco más brillante, como metal pulido */
+    background: linear-gradient(180deg, #FFFFFF 0%, #D1D9DD 50%, #BCC6CC 100%);
+    box-shadow: 0 0 25px rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+}
+
+/* HERO SECTION */
+.hero {
+    @apply flex flex-col items-center justify-center pt-52 pb-32 text-center px-4;
+}
+
+.heroTagline {
+    @apply text-blue-600 font-bold tracking-[0.2em] text-[10px] uppercase mb-8 block;
+}
+
+.heroTitle {
+    @apply text-6xl md:text-[7rem] font-black leading-[0.9] mb-8 italic uppercase tracking-tighter;
+    animation: silverBreathHero 2.5s ease-in-out infinite;
+
+    /* Tu solución maestra para el recorte de la itálica */
+    padding-right: 0.2em;
+    margin-right: -0.2em;
+    display: inline-block;
+
+    will-change: filter, text-shadow, transform;
+}
+
+/* Home.module.css */
+
+.strokeText {
+    /* Base Metálica */
+    color: #BCC6CC;
+
+    /* El Resplandor Metálico que encontraste */
+    text-shadow:
+        0 0 20px rgba(192, 192, 192, 0.3),
+        0 0 40px rgba(255, 255, 255, 0.1);
+
+    /* El Efecto de Plata Bruñida */
+    background: linear-gradient(180deg, #FFFFFF 0%, #BCC6CC 50%, #808080 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+
+    /* FIX: Espaciado para evitar que la inclinación de la itálica corte la última letra */
+    padding-right: 0.2em;
+    margin-right: -0.2em;
+
+    @apply block mt-2 font-black italic transition-all duration-500;
+}
+
+/* Tip: Al pasar el mouse, podemos aumentar un poco el brillo */
+.strokeText:hover {
+    text-shadow:
+        0 0 30px rgba(192, 192, 192, 0.5),
+        0 0 50px rgba(255, 255, 255, 0.2);
+    filter: brightness(1.2);
+    transform: scale(1.02);
+}
+
+.heroDesc {
+    @apply max-w-lg text-gray-400 text-sm md:text-base leading-relaxed mb-10;
+}
+
+.ctaButton {
+    @apply flex items-center gap-2 bg-white text-black px-8 py-4 rounded-full text-xs font-black uppercase tracking-widest hover:scale-105 transition-transform duration-300;
+}
+
+/* SECCIONES COMUNES */
+.section {
+    @apply py-24 px-8 max-w-6xl mx-auto;
+}
+
+.sectionTitle {
+    @apply text-3xl font-black italic uppercase mb-12 flex items-center gap-2;
+}
+
+.textSteel {
+    @apply text-blue-600;
+}
+
+.grid {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4;
+}
+
+.gridPricing {
+    @apply grid grid-cols-1 md:grid-cols-3 gap-6 items-center;
+}
+
+/* ABOUT SECTION */
+.aboutSection {
+    @apply max-w-6xl mx-auto px-8 py-24 flex flex-col md:flex-row gap-12 items-center;
+}
+
+.aboutImage {
+    @apply w-full md:w-1/2 aspect-[4/5] bg-[#111] rounded-3xl flex items-center justify-center overflow-hidden relative;
+}
+
+.aboutImageText {
+    @apply text-[10rem] font-black italic text-white/5 absolute;
+}
+
+.aboutContent {
+    @apply w-full md:w-1/2;
+}
+
+.aboutTag {
+    @apply text-blue-600 text-[10px] font-bold uppercase tracking-widest mb-4 block;
+}
+
+.aboutTitle {
+    @apply text-5xl font-black italic uppercase mb-6;
+}
+
+.aboutQuote {
+    @apply text-gray-400 text-lg italic leading-relaxed mb-8;
+}
+
+.socialRow {
+    @apply flex items-center gap-4;
+}
+
+.instagramIcon {
+    @apply w-5 h-5;
+    background-color: currentColor;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect width='20' height='20' x='2' y='2' rx='5' ry='5'/%3E%3Cpath d='M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z'/%3E%3Cline x1='17.5' x2='17.51' y1='6.5' y2='6.5'/%3E%3C/svg%3E") no-repeat center / contain;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect width='20' height='20' x='2' y='2' rx='5' ry='5'/%3E%3Cpath d='M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z'/%3E%3Cline x1='17.5' x2='17.51' y1='6.5' y2='6.5'/%3E%3C/svg%3E") no-repeat center / contain;
+}
+
+.socialBtn {
+    @apply w-12 h-12 rounded-full border border-white/10 flex items-center justify-center hover:bg-white/5 transition-colors;
+}
+
+/* FOOTER */
+.footer {
+    @apply py-12 border-t border-white/5 text-center flex flex-col items-center justify-center gap-4;
+}
+
+.footerLogo {
+    @apply text-2xl font-black italic opacity-100;
+}
+
+.footerDesc {
+    @apply text-[10px] text-gray-500 uppercase tracking-widest;
+}
+
+/* Home.module.css */
+
+/* Esta es tu variable maestra para el efecto plata */
+.silverText {
+    /* 1. Degradado base + el "Rayito" de luz blanca en medio */
+    background: linear-gradient(110deg,
+            #808080 0%,
+            #BCC6CC 45%,
+            #FFFFFF 50%,
+            #BCC6CC 55%,
+            #808080 100%);
+
+    /* 2. Hacemos que el fondo sea muy grande para poder moverlo */
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+
+    /* 3. Combinamos las dos animaciones: el barrido y el pulso */
+    animation:
+        silverSweep 3s linear infinite,
+        silverPulse 2.5s ease-in-out infinite;
+
+    /* Tu solución para el recorte */
+    padding-right: 0.2em;
+    margin-right: -0.2em;
+    display: inline-block;
+    will-change: background-position, filter;
+}
+
+.silverHero {
+    /* 1. Usamos el mismo degradado con el "rayo" de luz */
+    background: linear-gradient(110deg,
+            #808080 0%,
+            #BCC6CC 45%,
+            #D1D9DD 50%,
+            #BCC6CC 55%,
+            #808080 100%);
+
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+
+    /* 2. ANIMACIÓN LENTA: 
+       Sweep de 8s (antes 3s) y Pulse de 5s (antes 2.5s) */
+    animation:
+        silverSweep 8s linear infinite,
+        silverPulse 5s ease-in-out infinite;
+
+    /* 3. Tu solución para el recorte de la itálica */
+    padding-right: 0.25em;
+    /* Un poquito más de aire para el Hero */
+    margin-right: -0.25em;
+    display: inline-block;
+
+    will-change: background-position, filter;
+
+    @apply font-black italic;
+}
+
+/* Ahora tus otras clases solo "llaman" o heredan este estilo */
+.logoAccent {
+    @apply font-black italic;
+    /* No necesitas escribir todo el código aquí, solo asegúrate de aplicar la clase en el TSX */
+}
+
+@keyframes silverSweep {
+    0% {
+        background-position: -200% center;
+    }
+
+    100% {
+        background-position: 200% center;
+    }
+}
+
+@keyframes silverPulse {
+
+    0%,
+    100% {
+        filter: brightness(1) drop-shadow(0 0 5px rgba(192, 192, 192, 0.2));
+    }
+
+    50% {
+        filter: brightness(1.4) drop-shadow(0 0 15px rgba(255, 255, 255, 0.4));
+    }
+}
+
+/* Para los textos pequeños (taglines como "LEGACY OF STRENGTH") */
+.taglineTitanium {
+    color: var(--mercury-light);
+    @apply font-bold tracking-[0.3em] text-[10px] mb-6 opacity-80;
+    text-shadow: 0 0 10px rgba(209, 217, 221, 0.3);
+}
+
+/* Para la palabra resaltada en los títulos (SISTEMA, PLANES) */
+.accentWord {
+    color: var(--accent-silver);
+    text-shadow: 0 0 15px rgba(188, 198, 204, 0.5);
+    @apply font-black italic;
+}
+
+/* La tarjeta que antes era azul sólido (CARDIO) */
+/* Ahora será negra con un "Aura" de plata */
+.cardActive {
+    background: #111111 !important;
+    /* Un gris casi negro para resaltar */
+    border: 1px solid var(--accent-silver) !important;
+    box-shadow: 0 0 30px rgba(188, 198, 204, 0.2);
+    @apply scale-105;
+}
+
+/* Para los iconos o checkmarks */
+.iconSilver {
+    color: var(--accent-silver);
+    filter: drop-shadow(0 0 5px rgba(188, 198, 204, 0.4));
+}
