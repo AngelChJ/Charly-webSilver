@@ -1,5 +1,13 @@
 @reference "tailwindcss";
 
+:root {
+    --bg-primary: #080808;
+    --accent-silver: #BCC6CC;
+    --steel-dark: #808080;
+    --mercury-light: #D1D9DD;
+}
+
+/* LAYOUT & CONTAINERS */
 .container {
     @apply min-h-screen bg-[#0A0A0A] text-white font-sans flex items-center justify-center relative px-4;
 }
@@ -9,47 +17,90 @@
 }
 
 .loginBox {
-    @apply w-full max-w-md bg-[#111] p-10 rounded-3xl border border-white/5 shadow-[0_0_50px_rgba(0,0,0,0.5)];
+    @apply w-full max-w-md bg-[#111] p-10 rounded-3xl border border-white/5;
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
 }
 
+/* TYPOGRAPHY */
 .header {
     @apply text-center mb-10;
 }
 
 .title {
-    @apply text-5xl font-black italic uppercase tracking-tighter mb-2;
-}
-
-.dot {
-    @apply text-blue-600;
+    @apply text-5xl font-black uppercase tracking-tighter mb-2;
+    color: var(--accent-silver);
 }
 
 .subtitle {
     @apply text-[10px] text-gray-500 uppercase tracking-widest font-bold;
 }
 
+/* FORMS & INPUTS */
 .form {
     @apply space-y-6;
 }
 
 .inputGroup {
-    @apply relative flex items-center bg-[#0A0A0A] border border-white/5 rounded-2xl p-4 transition-all duration-300 focus-within:border-blue-600/50;
+    @apply relative flex items-center bg-[#0A0A0A] border border-white/5 rounded-2xl p-4 transition-all duration-300 focus-within:border-white/20;
 }
 
 .icon {
+    color: var(--accent-silver);
     @apply text-gray-600 mr-4 transition-colors duration-300;
 }
 
 .inputGroup:focus-within .icon {
-    @apply text-blue-600;
+    color: white;
 }
 
 .inputGroup input {
-    @apply bg-transparent border-none outline-none text-sm font-bold tracking-wide w-full text-white placeholder:text-gray-700 uppercase;
+    @apply bg-transparent border-none outline-none text-sm font-bold tracking-wide w-full text-white placeholder:text-gray-700;
 }
 
-.submitBtn {
-    @apply w-full bg-blue-600 text-white py-4 rounded-2xl flex items-center justify-center gap-2 font-black uppercase text-xs tracking-widest hover:bg-blue-700 transition-all duration-300 shadow-[0_10px_20px_rgba(37,99,235,0.2)];
+/* BUTTONS */
+.AccessBtn {
+    @apply w-full max-w-[280px] mx-auto py-4 flex cursor-pointer text-base font-black uppercase tracking-widest transition-all duration-300 items-center justify-center gap-3;
+    border-radius: 24px;
+    background-image: linear-gradient(180deg, #ffffffb9 0%, #BCC6CC 50%, #808080 100%);
+    color: black;
+    /* Texto blanco sobre fondo de plata */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3), 0 0 20px rgba(188, 198, 204, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.AccessBtn:hover {
+    background: linear-gradient(180deg, #FFFFFF 0%, #D1D9DD 50%, #BCC6CC 100%);
+    color: #000000;
+    /* Texto negro al hacer hover para contraste */
+    box-shadow: 0 0 25px rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+}
+
+/* LOADING STATE */
+.loadingContainer {
+    @apply w-full mt-4 flex flex-col items-center;
+}
+
+.loadingBar {
+    @apply w-full h-[3px] bg-white/5 rounded-full overflow-hidden relative;
+}
+
+.loadingBar::after {
+    content: '';
+    @apply absolute top-0 left-0 h-full;
+    background: linear-gradient(90deg, var(--steel-dark), var(--mercury-light), var(--steel-dark));
+    background-size: 200% auto;
+    animation: loadProgress 2.5s ease-in-out forwards, silverSweep 3s linear infinite;
+}
+
+.loadingText {
+    @apply text-[9px] text-gray-500 font-bold tracking-[0.3em] mt-4 uppercase;
+}
+
+/* FEEDBACK */
+.errorMessage {
+    @apply text-red-500 text-[10px] font-black uppercase tracking-widest mb-6 text-center;
+    animation: shake 0.3s ease-in-out;
 }
 
 .footer {
@@ -57,5 +108,74 @@
 }
 
 .footer a {
-    @apply text-blue-600 hover:text-blue-500 transition-colors;
+    @apply text-gray-400 hover:text-white transition-colors;
+}
+
+/* SPECIAL EFFECTS */
+.silverHero {
+    background: linear-gradient(110deg, #808080 0%, #BCC6CC 45%, #D1D9DD 50%, #BCC6CC 55%, #808080 100%);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: silverSweep 8s linear infinite, silverPulse 5s ease-in-out infinite;
+    padding-right: 0.25em;
+    margin-right: -0.25em;
+    display: inline-block;
+    will-change: background-position, filter;
+    @apply font-black italic;
+}
+
+.accentWord {
+    color: var(--accent-silver);
+    text-shadow: 0 0 15px rgba(188, 198, 204, 0.5);
+    @apply font-black italic;
+}
+
+/* ANIMATIONS */
+@keyframes silverSweep {
+    0% {
+        background-position: -200% center;
+    }
+
+    100% {
+        background-position: 200% center;
+    }
+}
+
+@keyframes silverPulse {
+
+    0%,
+    100% {
+        filter: brightness(1) drop-shadow(0 0 5px rgba(192, 192, 192, 0.2));
+    }
+
+    50% {
+        filter: brightness(1.4) drop-shadow(0 0 15px rgba(255, 255, 255, 0.4));
+    }
+}
+
+@keyframes loadProgress {
+    0% {
+        width: 0%;
+    }
+
+    100% {
+        width: 100%;
+    }
+}
+
+@keyframes shake {
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    25% {
+        transform: translateX(-5px);
+    }
+
+    75% {
+        transform: translateX(5px);
+    }
 }

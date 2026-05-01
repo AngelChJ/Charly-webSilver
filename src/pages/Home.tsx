@@ -21,7 +21,7 @@ const Home = () => {
     const planes = [
         { id: 0, nombre: "PLAN ESTÁNDAR", precio: "800", beneficios: ["Acceso al gym", "Rutina base", "Seguimiento quincenal"] },
         { id: 1, nombre: "PLAN PREMIUM", precio: "1200", beneficios: ["Acceso 24/7", "Dieta personalizada", "Coach por WhatsApp", "Registro de progreso"] },
-        { id: 2, nombre: "PLAN AVANZADO", precio: "1800", beneficios: ["Todo lo anterior", "Análisis biométrico", "Suplementación", "Fisioterapia"] }
+        { id: 2, nombre: "PLAN AVANZADO", precio: "1800", beneficios: ["Todo lo anterior", "Acompañamiento personalizado", "Suplementación",] }
     ];
 
     return (

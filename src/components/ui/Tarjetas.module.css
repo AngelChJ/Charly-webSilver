@@ -111,3 +111,8 @@
     @apply text-black border-transparent hover:brightness-110 mt-2 scale-105;
     box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
 }
+
+.checkIcon {
+    color: var(--accent-silver);
+    filter: drop-shadow(0 0 5px rgba(188, 198, 204, 0.4));
+}

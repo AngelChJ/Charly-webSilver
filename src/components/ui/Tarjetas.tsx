@@ -42,12 +42,12 @@ export const TarjetaPrecio = ({ nombre, precio, beneficios, popular }: PrecioPro
                 {beneficios.map((b, i) => (
                     <li key={i} className={styles.benefitItem}>
                         <Check size={14} className={styles.checkIcon} />
-                        {b}
+                        <span className="text-gray-400">{b}</span>
                     </li>
                 ))}
             </ul>
             <button className={styles.selectBtn}>
-                {popular ? 'LO QUIERO ➔ CONECTAR AL COACH' : 'PREGUNTAR POR ESTE PLAN'}
+                {popular ? 'LO QUIERO - CONTACTAR AL COACH' : 'PREGUNTAR POR ESTE PLAN'}
             </button>
         </div>
     );
