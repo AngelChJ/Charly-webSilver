@@ -1,0 +1,1044 @@
+/* ============================================
+   FITNESS DASHBOARD — Industrial / Titanium
+   Dark background (#080808), silver borders,
+   premium metallic aesthetic.
+   ============================================ */
+
+:root {
+    --bg-primary: #080808;
+    --accent-silver: #BCC6CC;
+    --steel-dark: #808080;
+    --mercury-light: #D1D9DD;
+}
+
+/* ─── LAYOUT ─── */
+.container {
+    display: flex;
+    min-height: 100vh;
+    background: #080808;
+    color: #e8e8e8;
+    font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* ─── SIDEBAR ─── */
+.sidebar {
+    width: 280px;
+    background: #0a0a0a;
+    padding: 2rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+    border-right: 1px solid rgba(188, 198, 204, 0.08);
+    position: sticky;
+    top: 0;
+    height: 100vh;
+}
+
+.logo {
+    font-size: 1.25rem;
+    font-weight: 900;
+    font-style: italic;
+    letter-spacing: -0.02em;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.silverHero {
+    background: linear-gradient(110deg,
+            #808080 0%, #BCC6CC 45%, #FFFFFF 50%,
+            #BCC6CC 55%, #808080 100%);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: silverSweep 6s linear infinite;
+}
+
+.menu {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.menuItem {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+    border-radius: 10px;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: #666;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    border: 1px solid transparent;
+    width: 100%;
+    text-align: left;
+    background: none;
+    font-family: inherit;
+}
+
+.menuItem:hover {
+    color: #ccc;
+    background: rgba(188, 198, 204, 0.04);
+    border-color: rgba(188, 198, 204, 0.06);
+}
+
+.menuItemActive {
+    composes: menuItem;
+    color: #e8e8e8;
+    background: rgba(188, 198, 204, 0.06);
+    border-color: rgba(188, 198, 204, 0.12);
+    box-shadow: 0 0 20px rgba(188, 198, 204, 0.03);
+}
+
+.logout {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+    border-radius: 10px;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: #555;
+    cursor: pointer;
+    border: 1px solid transparent;
+    width: 100%;
+    text-align: left;
+    background: none;
+    font-family: inherit;
+    margin-top: auto;
+    transition: all 0.2s ease;
+}
+
+.logout:hover {
+    color: #f87171;
+    background: rgba(248, 113, 113, 0.04);
+    border-color: rgba(248, 113, 113, 0.1);
+}
+
+/* ─── MAIN CONTENT ─── */
+.main {
+    flex: 1;
+    padding: 2.5rem 3rem;
+    overflow-y: auto;
+}
+
+/* ─── HEADER ─── */
+.header {
+    margin-bottom: 2.5rem;
+}
+
+.header h1 {
+    font-size: 2.5rem;
+    font-weight: 900;
+    font-style: italic;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.25rem;
+}
+
+.header p {
+    font-size: 0.9375rem;
+    color: #888;
+    font-weight: 500;
+}
+
+.header p strong {
+    color: var(--accent-silver);
+    font-weight: 800;
+    letter-spacing: 0.02em;
+}
+
+/* ─── CONTENT GRID ─── */
+.contentGrid {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 2rem;
+    align-items: start;
+}
+
+/* ─── WORKOUT SECTION ─── */
+.workoutBox {
+    background: #0a0a0a;
+    border: 1px solid rgba(188, 198, 204, 0.08);
+    border-radius: 20px;
+    padding: 2rem;
+}
+
+.sectionTitle {
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #666;
+    margin-bottom: 1.5rem;
+}
+
+.exerciseList {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+/* ─── EXERCISE CARDS ─── */
+.exerciseCard {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.25rem 1.5rem;
+    border-radius: 14px;
+    border: 1px solid rgba(188, 198, 204, 0.06);
+    background: rgba(188, 198, 204, 0.02);
+    transition: all 0.2s ease;
+    cursor: pointer;
+    text-align: left;
+    font-family: inherit;
+    color: inherit;
+}
+
+.exerciseCard:hover {
+    border-color: rgba(188, 198, 204, 0.12);
+    background: rgba(188, 198, 204, 0.04);
+    transform: translateX(4px);
+}
+
+.exerciseDone {
+    composes: exerciseCard;
+    border-color: rgba(74, 222, 128, 0.12);
+    background: rgba(74, 222, 128, 0.03);
+    opacity: 0.6;
+}
+
+.exerciseDone:hover {
+    border-color: rgba(74, 222, 128, 0.2);
+    opacity: 0.7;
+}
+
+.exerciseInfo {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.exName {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #d0d0d0;
+}
+
+.exerciseDone .exName {
+    color: #4ade80;
+    text-decoration: line-through;
+}
+
+.exMeta {
+    font-size: 0.75rem;
+    color: #555;
+    font-weight: 500;
+}
+
+/* ─── WEIGHT INPUT ─── */
+.weightRow {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.25rem;
+}
+
+.weightInput {
+    width: 70px;
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    border: 1px solid rgba(188, 198, 204, 0.1);
+    background: rgba(188, 198, 204, 0.03);
+    color: #ccc;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    font-family: inherit;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.weightInput:focus {
+    border-color: rgba(188, 198, 204, 0.25);
+    background: rgba(188, 198, 204, 0.06);
+}
+
+.weightUnit {
+    font-size: 0.6875rem;
+    font-weight: 700;
+    color: #555;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    border: 1px solid rgba(188, 198, 204, 0.08);
+    background: rgba(188, 198, 204, 0.02);
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.weightUnit:hover {
+    border-color: rgba(188, 198, 204, 0.15);
+    color: #888;
+}
+
+/* ─── CHECK CIRCLE ─── */
+.checkCircle {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 2px solid rgba(188, 198, 204, 0.12);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+}
+
+.exerciseDone .checkCircle {
+    border-color: #4ade80;
+    background: rgba(74, 222, 128, 0.1);
+}
+
+/* ─── RIGHT SIDEBAR (Summary) ─── */
+.summaryBox {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+/* ─── STAT CARD ─── */
+.statCard {
+    background: #0a0a0a;
+    border: 1px solid rgba(188, 198, 204, 0.08);
+    border-radius: 20px;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.statCard:hover {
+    border-color: rgba(188, 198, 204, 0.12);
+}
+
+.statCardTitle {
+    font-size: 0.6875rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #555;
+    margin-bottom: 1rem;
+}
+
+/* ─── PROGRESS ─── */
+.progressLarge {
+    text-align: center;
+    padding: 0.5rem 0;
+}
+
+.progressCircle {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    border: 3px solid rgba(188, 198, 204, 0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 0.75rem;
+    position: relative;
+}
+
+.progressCircleValue {
+    font-size: 1.75rem;
+    font-weight: 900;
+    font-style: italic;
+    color: var(--accent-silver);
+}
+
+.progressLabel {
+    font-size: 0.6875rem;
+    color: #555;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+/* ─── WEEKLY CHART ─── */
+.chartContainer {
+    padding: 0.5rem 0;
+}
+
+.chartBars {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.375rem;
+    height: 100px;
+    margin-bottom: 0.5rem;
+}
+
+.bar {
+    flex: 1;
+    border-radius: 3px 3px 0 0;
+    background: linear-gradient(180deg, rgba(188, 198, 204, 0.25), rgba(188, 198, 204, 0.04));
+    transition: all 0.3s ease;
+    position: relative;
+    min-height: 4px;
+}
+
+.bar:hover {
+    background: linear-gradient(180deg, rgba(188, 198, 204, 0.4), rgba(188, 198, 204, 0.08));
+}
+
+.barActive {
+    background: linear-gradient(180deg, #BCC6CC, rgba(188, 198, 204, 0.15));
+    box-shadow: 0 0 10px rgba(188, 198, 204, 0.1);
+}
+
+.barLabels {
+    display: flex;
+    gap: 0.375rem;
+}
+
+.barLabel {
+    flex: 1;
+    text-align: center;
+    font-size: 0.5625rem;
+    color: #444;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+/* ─── FOCUS DISTRIBUTION ─── */
+.focusList {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.focusItem {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    border-radius: 10px;
+    border: 1px solid rgba(188, 198, 204, 0.04);
+    transition: all 0.2s ease;
+}
+
+.focusItem:hover {
+    border-color: rgba(188, 198, 204, 0.08);
+    background: rgba(188, 198, 204, 0.02);
+}
+
+.focusDot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.focusDotPush {
+    background: #BCC6CC;
+    box-shadow: 0 0 6px rgba(188, 198, 204, 0.3);
+}
+
+.focusDotPull {
+    background: #BCC6CC;
+    box-shadow: 0 0 6px rgba(188, 198, 204, 0.3);
+}
+
+.focusDotLegs {
+    background: #D1D9DD;
+    box-shadow: 0 0 6px rgba(209, 217, 221, 0.3);
+}
+
+.focusName {
+    flex: 1;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #999;
+}
+
+.focusCount {
+    font-size: 0.6875rem;
+    font-weight: 700;
+    color: #555;
+    font-variant-numeric: tabular-nums;
+}
+
+/* ─── FINISH ROUTINE BUTTON ─── */
+.finishBtn {
+    width: 100%;
+    padding: 1rem;
+    margin-top: 1.5rem;
+    border-radius: 14px;
+    border: 1px solid rgba(188, 198, 204, 0.15);
+    background: linear-gradient(135deg, rgba(188, 198, 204, 0.08), rgba(188, 198, 204, 0.03));
+    color: var(--accent-silver);
+    font-size: 0.8125rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: inherit;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+}
+
+.finishBtn:hover {
+    background: linear-gradient(135deg, rgba(188, 198, 204, 0.14), rgba(188, 198, 204, 0.06));
+    border-color: rgba(188, 198, 204, 0.25);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 20px rgba(188, 198, 204, 0.06);
+}
+
+.finishBtn:active {
+    transform: translateY(0);
+}
+
+/* ─── WHATSAPP CARD ─── */
+.actionCard {
+    background: #0a0a0a;
+    border: 1px solid rgba(188, 198, 204, 0.08);
+    border-radius: 20px;
+    padding: 1.5rem;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.actionCard:hover {
+    border-color: rgba(188, 198, 204, 0.12);
+}
+
+.actionCard p {
+    font-size: 0.8125rem;
+    color: #888;
+    margin-bottom: 1rem;
+    font-weight: 500;
+}
+
+.whatsappBtn {
+    width: 100%;
+    padding: 0.875rem;
+    border-radius: 12px;
+    border: 1px solid rgba(188, 198, 204, 0.12);
+    background: rgba(188, 198, 204, 0.04);
+    color: var(--accent-silver);
+    font-size: 0.6875rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+}
+
+.whatsappBtn:hover {
+    background: rgba(188, 198, 204, 0.08);
+    border-color: rgba(188, 198, 204, 0.2);
+}
+
+/* ─── MOBILE TOP BAR (hidden on desktop) ─── */
+.mobileTopBar {
+    display: none;
+}
+
+.mobileLogo {
+    display: none;
+}
+
+/* ─── HAMBURGER & OVERLAY (hidden on desktop) ─── */
+.hamburger {
+    display: none;
+}
+
+.overlay {
+    display: none;
+}
+
+.closeMenu {
+    display: none;
+}
+
+.sidebarHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* ─── ANIMATIONS ─── */
+@keyframes silverSweep {
+    0% {
+        background-position: -200% center;
+    }
+
+    100% {
+        background-position: 200% center;
+    }
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(-100%);
+    }
+
+    to {
+        transform: translateX(0);
+    }
+}
+
+/* ═══════════════════════════════════════════
+   RESPONSIVE — TABLET (768px - 1024px)
+   Sidebar se vuelve top bar horizontal
+   ═══════════════════════════════════════════ */
+@media (max-width: 1024px) {
+    .container {
+        flex-direction: column;
+    }
+
+    .sidebar {
+        width: 100%;
+        height: auto;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        flex-direction: row;
+        padding: 0.75rem 1.5rem;
+        gap: 0;
+        align-items: center;
+        border-right: none;
+        border-bottom: 1px solid rgba(188, 198, 204, 0.08);
+    }
+
+    .sidebarHeader {
+        display: contents;
+    }
+
+    .closeMenu {
+        display: none;
+    }
+
+    .logo {
+        font-size: 1rem;
+        margin-right: auto;
+    }
+
+    .menu {
+        flex-direction: row;
+        gap: 0.125rem;
+        margin: 0 1rem;
+    }
+
+    .menuItem,
+    .menuItemActive {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.8125rem;
+        white-space: nowrap;
+    }
+
+    .menuItem span,
+    .menuItemActive span {
+        display: none;
+    }
+
+    .logout {
+        margin-top: 0;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.8125rem;
+        width: auto;
+    }
+
+    .logout span {
+        display: none;
+    }
+
+    .contentGrid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    .main {
+        padding: 1.5rem;
+    }
+
+    .header h1 {
+        font-size: 2rem;
+    }
+
+    .summaryBox {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+
+    .actionCard {
+        grid-column: 1 / -1;
+    }
+}
+
+/* ═══════════════════════════════════════════
+   RESPONSIVE — MOBILE (< 768px)
+   Sidebar se oculta y se despliega desde la izquierda
+   ═══════════════════════════════════════════ */
+@media (max-width: 768px) {
+
+    /* Mobile top bar */
+    .mobileTopBar {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 100;
+        padding: 0.75rem 1rem;
+        gap: 0.75rem;
+        background: #080808;
+        border-bottom: 1px solid rgba(188, 198, 204, 0.06);
+    }
+
+    .mobileLogo {
+        display: block;
+        font-size: 0.9375rem;
+        font-weight: 900;
+        font-style: italic;
+        letter-spacing: -0.02em;
+        flex: 1;
+        text-align: center;
+    }
+
+    /* Hamburger button visible */
+    .hamburger {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        border: 1px solid rgba(188, 198, 204, 0.1);
+        background: #0a0a0a;
+        color: #ccc;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        flex-shrink: 0;
+    }
+
+    .hamburger:hover {
+        border-color: rgba(188, 198, 204, 0.2);
+        color: #fff;
+    }
+
+    /* Overlay */
+    .overlay {
+        display: block;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(4px);
+        z-index: 150;
+        animation: fadeIn 0.2s ease;
+    }
+
+    /* Sidebar: hidden by default, slides in from left */
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 280px;
+        height: 100vh;
+        z-index: 200;
+        flex-direction: column;
+        padding: 1.5rem;
+        gap: 2rem;
+        border-right: 1px solid rgba(188, 198, 204, 0.08);
+        border-bottom: none;
+        transform: translateX(-100%);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .sidebarOpen {
+        transform: translateX(0);
+    }
+
+    .sidebarHeader {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+    }
+
+    .closeMenu {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        border: 1px solid rgba(188, 198, 204, 0.08);
+        background: transparent;
+        color: #666;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .closeMenu:hover {
+        color: #ccc;
+        border-color: rgba(188, 198, 204, 0.15);
+    }
+
+    .logo {
+        font-size: 1rem;
+        margin-right: 0;
+    }
+
+    .logo span:first-of-type {
+        display: inline;
+    }
+
+    .menu {
+        flex-direction: column;
+        gap: 0.25rem;
+        margin: 0;
+    }
+
+    .menuItem,
+    .menuItemActive {
+        padding: 0.875rem 1rem;
+        font-size: 0.9375rem;
+        white-space: nowrap;
+    }
+
+    .menuItem span,
+    .menuItemActive span {
+        display: inline;
+    }
+
+    .logout {
+        margin-top: auto;
+        padding: 0.875rem 1rem;
+        font-size: 0.9375rem;
+        width: 100%;
+    }
+
+    .logout span {
+        display: inline;
+    }
+
+    /* Main content padding for hamburger */
+    .main {
+        padding: 1rem;
+        padding-top: 5.5rem;
+    }
+
+    .header {
+        margin-bottom: 1.5rem;
+    }
+
+    .header h1 {
+        font-size: 1.75rem;
+    }
+
+    .header p {
+        font-size: 0.9375rem;
+    }
+
+    .workoutBox {
+        padding: 1.25rem;
+        border-radius: 16px;
+    }
+
+    .sectionTitle {
+        font-size: 0.75rem;
+        margin-bottom: 1rem;
+    }
+
+    .exerciseCard,
+    .exerciseDone {
+        padding: 1rem 1.25rem;
+        border-radius: 12px;
+    }
+
+    .exerciseCard:hover {
+        transform: none;
+    }
+
+    .exName {
+        font-size: 1rem;
+    }
+
+    .exMeta {
+        font-size: 0.8125rem;
+    }
+
+    .weightInput {
+        width: 65px;
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+    }
+
+    .weightUnit {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+    }
+
+    .checkCircle {
+        width: 34px;
+        height: 34px;
+    }
+
+    .summaryBox {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .statCard {
+        padding: 1.25rem;
+        border-radius: 16px;
+    }
+
+    .statCardTitle {
+        font-size: 0.75rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .progressCircle {
+        width: 90px;
+        height: 90px;
+    }
+
+    .progressCircleValue {
+        font-size: 1.5rem;
+    }
+
+    .chartBars {
+        height: 80px;
+        gap: 0.3rem;
+    }
+
+    .barLabel {
+        font-size: 0.625rem;
+    }
+
+    .focusItem {
+        padding: 0.75rem;
+    }
+
+    .focusName {
+        font-size: 0.8125rem;
+    }
+
+    .focusCount {
+        font-size: 0.75rem;
+    }
+
+    .actionCard {
+        padding: 1.25rem;
+    }
+
+    .actionCard p {
+        font-size: 0.875rem;
+    }
+
+    .whatsappBtn {
+        padding: 0.875rem;
+        font-size: 0.75rem;
+    }
+}
+
+/* ═══════════════════════════════════════════
+   RESPONSIVE — SMALL MOBILE (< 480px)
+   ═══════════════════════════════════════════ */
+@media (max-width: 480px) {
+    .sidebar {
+        width: 260px;
+        padding: 1.25rem;
+    }
+
+    .menuItem,
+    .menuItemActive {
+        padding: 0.75rem 0.875rem;
+        font-size: 0.875rem;
+    }
+
+    .logout {
+        padding: 0.75rem 0.875rem;
+        font-size: 0.875rem;
+    }
+
+    .main {
+        padding: 0.75rem;
+        padding-top: 5rem;
+    }
+
+    .header h1 {
+        font-size: 1.5rem;
+    }
+
+    .header p {
+        font-size: 0.8125rem;
+    }
+
+    .workoutBox {
+        padding: 1rem;
+        border-radius: 14px;
+    }
+
+    .exerciseCard,
+    .exerciseDone {
+        padding: 0.875rem 1rem;
+        border-radius: 10px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .exerciseInfo {
+        width: 100%;
+    }
+
+    .checkCircle {
+        align-self: flex-end;
+        width: 30px;
+        height: 30px;
+    }
+
+    .weightInput {
+        width: 60px;
+    }
+
+    .statCard {
+        padding: 1rem;
+        border-radius: 14px;
+    }
+
+    .progressCircle {
+        width: 80px;
+        height: 80px;
+    }
+
+    .progressCircleValue {
+        font-size: 1.375rem;
+    }
+
+    .chartBars {
+        height: 70px;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}

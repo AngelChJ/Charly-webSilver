@@ -1,0 +1,366 @@
+/* ============================================================
+   CHARLY COACH — Progreso del Atleta
+   Estilo: Plata/Negro industrial
+   ============================================================ */
+
+.container {
+    min-height: 100vh;
+    background: #080808;
+    color: #BCC6CC;
+    font-family: system-ui, -apple-system, sans-serif;
+    padding: 2rem;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+/* ─── Header ─────────────────────────────────────────────── */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid rgba(188, 198, 204, 0.08);
+}
+
+.backBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: transparent;
+    border: 1px solid rgba(188, 198, 204, 0.1);
+    border-radius: 10px;
+    color: #BCC6CC;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.backBtn:hover {
+    border-color: rgba(188, 198, 204, 0.25);
+}
+
+.title {
+    font-size: 1.25rem;
+    font-weight: 900;
+    font-style: italic;
+    letter-spacing: 0.02em;
+    margin: 0;
+}
+
+.silverText {
+    color: #BCC6CC;
+}
+
+/* ─── Stats Grid ─────────────────────────────────────────── */
+.statsGrid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+}
+
+.statCard {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 1rem;
+    background: rgba(188, 198, 204, 0.03);
+    border: 1px solid rgba(188, 198, 204, 0.08);
+    border-radius: 12px;
+    text-align: center;
+}
+
+.statIcon {
+    color: #BCC6CC;
+    opacity: 0.4;
+}
+
+.statValue {
+    font-size: 1.25rem;
+    font-weight: 900;
+    margin: 0;
+    line-height: 1;
+}
+
+.statLabel {
+    font-size: 0.55rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: #666;
+    margin: 0;
+}
+
+/* ─── Tabs ───────────────────────────────────────────────── */
+.tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid rgba(188, 198, 204, 0.06);
+    padding-bottom: 0.75rem;
+}
+
+.tab {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 1rem;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    color: #666;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+
+.tab:hover {
+    color: #999;
+    border-color: rgba(188, 198, 204, 0.08);
+}
+
+.tabActive {
+    color: #BCC6CC;
+    border-color: rgba(188, 198, 204, 0.15);
+    background: rgba(188, 198, 204, 0.04);
+}
+
+.tab svg {
+    opacity: 0.6;
+}
+
+.tabActive svg {
+    opacity: 1;
+}
+
+/* ─── Tab Content ────────────────────────────────────────── */
+.tabContent {
+    min-height: 300px;
+}
+
+/* ─── Weekly Cards ───────────────────────────────────────── */
+.weeklyList {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.weeklyCard {
+    padding: 1rem 1.25rem;
+    background: rgba(188, 198, 204, 0.02);
+    border: 1px solid rgba(188, 198, 204, 0.06);
+    border-radius: 12px;
+}
+
+.weeklyHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.weekLabel {
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+}
+
+.streakBadge {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: #ff6b35;
+    letter-spacing: 0.05em;
+}
+
+.weeklyStats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.weeklyStat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.15rem;
+}
+
+.weeklyStatValue {
+    font-size: 0.9rem;
+    font-weight: 800;
+}
+
+.weeklyStatLabel {
+    font-size: 0.5rem;
+    font-weight: 600;
+    color: #666;
+    letter-spacing: 0.08em;
+}
+
+/* ─── Progress Bar ───────────────────────────────────────── */
+.progressBar {
+    height: 4px;
+    background: rgba(188, 198, 204, 0.06);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.progressFill {
+    height: 100%;
+    background: #BCC6CC;
+    border-radius: 2px;
+    transition: width 0.5s ease;
+}
+
+/* ─── PB Cards ───────────────────────────────────────────── */
+.pbList {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.pbCard {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.25rem;
+    background: rgba(188, 198, 204, 0.02);
+    border: 1px solid rgba(188, 198, 204, 0.06);
+    border-radius: 12px;
+    transition: all 0.2s;
+}
+
+.pbCard:hover {
+    background: rgba(188, 198, 204, 0.04);
+    border-color: rgba(188, 198, 204, 0.1);
+}
+
+.pbInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.pbName {
+    font-size: 0.85rem;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: 0.02em;
+}
+
+.pbDate {
+    font-size: 0.6rem;
+    color: #666;
+    margin: 0;
+    letter-spacing: 0.05em;
+}
+
+.pbWeight {
+    display: flex;
+    align-items: baseline;
+    gap: 0.25rem;
+}
+
+.pbWeightValue {
+    font-size: 1.25rem;
+    font-weight: 900;
+    color: #BCC6CC;
+}
+
+.pbWeightUnit {
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: #666;
+}
+
+/* ─── Session Cards ──────────────────────────────────────── */
+.sessionList {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.sessionCard {
+    padding: 1rem 1.25rem;
+    background: rgba(188, 198, 204, 0.02);
+    border: 1px solid rgba(188, 198, 204, 0.06);
+    border-radius: 12px;
+}
+
+.sessionHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.5rem;
+}
+
+.sessionName {
+    font-size: 0.85rem;
+    font-weight: 700;
+    margin: 0 0 0.15rem;
+    letter-spacing: 0.02em;
+}
+
+.sessionDate {
+    font-size: 0.6rem;
+    color: #666;
+    margin: 0;
+    letter-spacing: 0.03em;
+    text-transform: capitalize;
+}
+
+.sessionProgress {
+    font-size: 1rem;
+    font-weight: 900;
+    color: #888;
+}
+
+.sessionComplete {
+    color: #4CAF50;
+}
+
+.sessionMeta {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+    font-size: 0.6rem;
+    color: #666;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+}
+
+/* ─── Responsive ─────────────────────────────────────────── */
+@media (max-width: 640px) {
+    .container {
+        padding: 1rem;
+    }
+
+    .statsGrid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .weeklyStats {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
+    }
+
+    .tabs {
+        overflow-x: auto;
+        gap: 0.25rem;
+    }
+
+    .tab {
+        white-space: nowrap;
+        padding: 0.4rem 0.75rem;
+        font-size: 0.6rem;
+    }
+}

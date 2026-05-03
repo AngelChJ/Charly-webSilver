@@ -1,0 +1,333 @@
+/* ============================================================
+   CHARLY COACH — Perfil del Atleta
+   Estilo: Plata/Negro industrial
+   ============================================================ */
+
+.container {
+    min-height: 100vh;
+    background: #080808;
+    color: #BCC6CC;
+    font-family: system-ui, -apple-system, sans-serif;
+    padding: 2rem;
+    max-width: 640px;
+    margin: 0 auto;
+}
+
+/* ─── Header ─────────────────────────────────────────────── */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid rgba(188, 198, 204, 0.08);
+}
+
+.backBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: transparent;
+    border: 1px solid rgba(188, 198, 204, 0.1);
+    border-radius: 10px;
+    color: #BCC6CC;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.backBtn:hover {
+    border-color: rgba(188, 198, 204, 0.25);
+}
+
+.title {
+    font-size: 1.25rem;
+    font-weight: 900;
+    font-style: italic;
+    letter-spacing: 0.02em;
+    margin: 0;
+}
+
+.silverText {
+    color: #BCC6CC;
+}
+
+.logoutBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: transparent;
+    border: 1px solid rgba(188, 198, 204, 0.1);
+    border-radius: 10px;
+    color: #666;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.logoutBtn:hover {
+    border-color: rgba(255, 80, 80, 0.3);
+    color: #ff5050;
+}
+
+/* ─── Profile Header ─────────────────────────────────────── */
+.profileHeader {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(188, 198, 204, 0.12), rgba(188, 198, 204, 0.05));
+    border: 1px solid rgba(188, 198, 204, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #BCC6CC;
+    flex-shrink: 0;
+}
+
+.profileInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.profileName {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: 0.02em;
+}
+
+.profileEmail {
+    font-size: 0.7rem;
+    color: #666;
+    margin: 0;
+    letter-spacing: 0.05em;
+}
+
+/* ─── Sections ───────────────────────────────────────────── */
+.section {
+    margin-bottom: 2rem;
+}
+
+.sectionHeader {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.sectionIcon {
+    color: #666;
+}
+
+.sectionTitle {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: #666;
+    margin: 0;
+}
+
+/* ─── Plan Card ──────────────────────────────────────────── */
+.planCard {
+    background: rgba(188, 198, 204, 0.03);
+    border: 1px solid rgba(188, 198, 204, 0.08);
+    border-radius: 12px;
+    padding: 1.25rem;
+}
+
+.planInfo {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.planName {
+    font-size: 0.95rem;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: 0.02em;
+}
+
+.planPrice {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #888;
+    margin: 0;
+}
+
+.planBenefits {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.benefitItem {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    color: #999;
+}
+
+.benefitItem svg {
+    color: #4CAF50;
+    opacity: 0.7;
+    flex-shrink: 0;
+}
+
+/* ─── Goal Grid ──────────────────────────────────────────── */
+.goalGrid {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.goalCard {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
+    background: rgba(188, 198, 204, 0.02);
+    border: 1px solid rgba(188, 198, 204, 0.06);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: left;
+    width: 100%;
+    color: #BCC6CC;
+    font-family: inherit;
+    position: relative;
+}
+
+.goalCard:hover {
+    background: rgba(188, 198, 204, 0.04);
+    border-color: rgba(188, 198, 204, 0.12);
+}
+
+.goalCardActive {
+    background: rgba(188, 198, 204, 0.06);
+    border-color: rgba(188, 198, 204, 0.2);
+}
+
+.goalIcon {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.goalText {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.goalLabel {
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+}
+
+.goalDesc {
+    font-size: 0.65rem;
+    color: #666;
+    font-weight: 500;
+}
+
+.goalCheck {
+    position: absolute;
+    right: 1rem;
+    color: #BCC6CC;
+}
+
+/* ─── Weight Input ───────────────────────────────────────── */
+.weightInputGroup {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    background: rgba(188, 198, 204, 0.03);
+    border: 1px solid rgba(188, 198, 204, 0.1);
+    border-radius: 10px;
+    max-width: 200px;
+}
+
+.weightInput {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #BCC6CC;
+    font-size: 1.25rem;
+    font-weight: 700;
+    width: 100px;
+    font-family: inherit;
+}
+
+.weightInput::-webkit-inner-spin-button,
+.weightInput::-webkit-outer-spin-button {
+    opacity: 0.5;
+}
+
+.weightUnit {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #666;
+    letter-spacing: 0.05em;
+}
+
+/* ─── Save Button ────────────────────────────────────────── */
+.saveBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.85rem;
+    background: rgba(188, 198, 204, 0.06);
+    border: 1px solid rgba(188, 198, 204, 0.15);
+    border-radius: 12px;
+    color: #BCC6CC;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+
+.saveBtn:hover {
+    background: rgba(188, 198, 204, 0.1);
+    border-color: rgba(188, 198, 204, 0.25);
+}
+
+.saveBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.saveBtnSuccess {
+    background: rgba(76, 175, 80, 0.1);
+    border-color: rgba(76, 175, 80, 0.3);
+    color: #4CAF50;
+}
+
+/* ─── Responsive ─────────────────────────────────────────── */
+@media (max-width: 640px) {
+    .container {
+        padding: 1rem;
+    }
+}
