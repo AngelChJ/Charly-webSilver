@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, TrendingUp, Trophy, Calendar, Activity, Dumbbell, Clock, Flame } from 'lucide-react';
 import styles from '../styles/Progress.module.css';
 
@@ -10,12 +11,13 @@ const MOCK_SESSIONS = [
 ];
 
 export default function ProgressLocal() {
+    const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('sessions');
 
     return (
         <div className={styles.container}>
             <header className={styles.header}>
-                <button className={styles.backBtn}><ChevronLeft size={20} /></button>
+                <button className={styles.backBtn} onClick={() => navigate('/dashboard')} ><ChevronLeft size={20} /></button>
                 <h1 className={styles.title}><span className={styles.silverText}>PROGRESO</span></h1>
                 <div style={{ width: 36 }} />
             </header>

@@ -41,6 +41,7 @@ const Login = () => {
         }, 2500); // 2.5 segundos para que luzca el brillo plateado
     };
 
+    
     return (
         <div className={styles.container}>
             <Link to="/" className={styles.backBtn}>

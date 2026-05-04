@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, Target, Weight, Crown, LogOut, Save, Check } from 'lucide-react';
 import styles from '../styles/Profile.module.css';
 
@@ -16,6 +17,7 @@ const PLAN_ACTUAL = {
 };
 
 export default function PerfilLocal() {
+    const navigate = useNavigate();
     const [selectedGoal, setSelectedGoal] = useState('muscle_gain');
     const [weight, setWeight] = useState('82.5');
     const [isSaving, setIsSaving] = useState(false);
@@ -30,12 +32,20 @@ export default function PerfilLocal() {
         }, 1200);
     };
 
+    const handleLogout = () => {
+        const confirmLogout = window.confirm('¿Estás seguro de que deseas cerrar sesión?');
+        if (confirmLogout) {
+            localStorage.removeItem('user');
+            navigate('/login');
+        }
+    };
+
     return (
         <div className={styles.container}>
             <header className={styles.header}>
-                <button className={styles.backBtn}><ChevronLeft size={20} /></button>
+                <button className={styles.backBtn} onClick={() => navigate('/dashboard')}><ChevronLeft size={20} /></button>
                 <h1 className={styles.title}><span className={styles.silverText}>PERFIL</span></h1>
-                <button className={styles.logoutBtn}><LogOut size={18} /></button>
+                <button className={styles.logoutBtn} onClick={handleLogout}><LogOut size={18} /></button>
             </header>
 
             <div className={styles.profileHeader}>
