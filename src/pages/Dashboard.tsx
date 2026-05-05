@@ -1,51 +1,214 @@
-import { useState } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
-import { Dumbbell, Check, User, LogOut, TrendingUp, Calendar, Menu, X, Flag, MessageCircle } from 'lucide-react';
+import { Dumbbell, Check, User, LogOut, TrendingUp, Calendar, Menu, X, Flag, MessageCircle, Loader } from 'lucide-react';
 import styles from '../styles/Dashboard.module.css';
+import { supabase } from '../lib/supabaseClient';
+import { useWorkout } from '../hooks/useWorkout';
+import { useAuth } from '../hooks/useAuth';
+import { useState, useMemo, useEffect } from 'react';
 
-// ─── Mocks para la "Fortaleza" ──────────────────────────────────
-const TODAY = {
-    day: new Date().toLocaleDateString('es-MX', { weekday: 'long' }).toUpperCase(),
-    num: new Date().getDate(),
-    month: new Date().toLocaleDateString('es-MX', { month: 'long' }).toUpperCase(),
-    focus: 'PECHO Y BICEPS'
-};
+interface ExerciseState {
+    id: number;
+    name: string;
+    sets: number;
+    reps: number;
+    weight: number;
+    done: boolean;
+}
 
-const INITIAL_EXERCISES = [
-    { name: 'Press de Banca', sets: '4 series', reps: '10 reps', weight: 80, done: false },
-    { name: 'Press Inclinado', sets: '3 series', reps: '12 reps', weight: 60, done: false },
-    { name: 'Curl con Barra', sets: '4 series', reps: '10 reps', weight: 35, done: false },
-    { name: 'Martillos', sets: '3 series', reps: '12 reps', weight: 15, done: false },
-];
-
-const WEEK_LABELS = ['LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB', 'DOM'];
-const WEEK_DATA = [80, 65, 90, 45, 100, 0, 0]; // Simulación de esfuerzo
-
-export default function DashboardLocal() {
+export default function Dashboard() {
     const navigate = useNavigate();
     const location = useLocation();
-    const [exercises, setExercises] = useState(INITIAL_EXERCISES);
     const [menuOpen, setMenuOpen] = useState(false);
-    const [unit, setUnit] = useState('Lbs'); // Opción para kg/lbs, por ahora fija en lbs
+    const [unit] = useState('Lbs');
 
-    // Lógica de progreso
-    const completed = exercises.filter(e => e.done).length;
-    const progressPct = Math.round((completed / exercises.length) * 100);
+    const { user } = useAuth();
+    const { plan, loading, error } = useWorkout(user?.id);
+
+    // ─── Día actual según mapeo semanal ───
+    const todayDay = useMemo(() => {
+        if (!plan || !plan.days || plan.days.length === 0) return null;
+
+        const todayIndex = new Date().getDay(); // 0=Dom, 1=Lun...6=Sáb
+        const totalDays = plan.days.length;
+
+        // Domingo siempre es descanso
+        if (todayIndex === 0) return null;
+
+        // Calcular qué día del plan toca hoy
+        // Los días de entrenamiento se distribuyen de Lun a Sáb
+        // Si hay menos días que días de semana, se rotan
+        const trainingDays = [1, 2, 3, 4, 5, 6]; // Lun a Sáb
+        const dayPosition = trainingDays.indexOf(todayIndex); // 0 a 5
+
+        if (dayPosition === -1) return null;
+
+        // Rotar: si hay 3 días, Lun=0, Mar=1, Mié=2, Jue=0, Vie=1, Sáb=2
+        const dayIndex = dayPosition % totalDays;
+
+        return plan.days[dayIndex];
+    }, [plan]);
+
+    // ─── Transformar ejercicios del día actual ───
+    const exercises: ExerciseState[] = useMemo(() => {
+        if (!todayDay) return [];
+        return todayDay.exercises.map((ex) => ({
+            id: ex.id,
+            name: ex.exercise?.name ?? 'Ejercicio sin nombre',
+            sets: ex.sets,
+            reps: ex.reps,
+            weight: 0,
+            done: false,
+        }));
+    }, [todayDay]);
+
+    const [exState, setExState] = useState<ExerciseState[]>([]);
+
+    // Sincronizar exercises con el estado local
+    useEffect(() => {
+        if (exercises.length > 0) {
+            const currentIds = exState.map((e) => e.id).join(',');
+            const newIds = exercises.map((e) => e.id).join(',');
+            if (currentIds !== newIds) {
+                setExState(exercises);
+            }
+        } else {
+            setExState([]);
+        }
+    }, [exercises]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    const currentExercises = exState.length > 0 ? exState : exercises;
+
+    const completed = currentExercises.filter((e) => e.done).length;
+    const progressPct = currentExercises.length > 0 ? Math.round((completed / currentExercises.length) * 100) : 0;
+    const totalVolume = currentExercises
+        .filter((e) => e.done)
+        .reduce((sum, ex) => sum + ex.sets * ex.reps * ex.weight, 0);
 
     const toggleExercise = (index: number) => {
-        const newEx = [...exercises];
+        const newEx = [...currentExercises];
         newEx[index].done = !newEx[index].done;
-        setExercises(newEx);
+        setExState(newEx);
     };
 
-    const handleLogout = () => {
-        localStorage.removeItem('user');
+    const updateWeight = (index: number, weight: number) => {
+        const newEx = [...currentExercises];
+        newEx[index].weight = weight;
+        setExState(newEx);
+    };
+
+    const handleFinishSession = async () => {
+        const completedEx = currentExercises.filter((e) => e.done);
+        if (completedEx.length === 0) {
+            alert('Completa al menos un ejercicio antes de finalizar.');
+            return;
+        }
+
+        const session = {
+            user_id: user?.id,
+            plan_id: plan?.id,
+            routine_name: todayDay?.day_label ?? plan?.name ?? 'RUTINA',
+            date: new Date().toISOString().split('T')[0],
+            exercises: completedEx.map((ex) => ({
+                name: ex.name,
+                sets: ex.sets,
+                reps: ex.reps,
+                weight: ex.weight,
+            })),
+            total_volume: totalVolume,
+        };
+
+        const { error } = await supabase.from('workout_sessions').insert(session);
+
+        if (error) {
+            console.error('Error al guardar sesión:', error.message);
+            alert('Error al guardar la sesión. Intenta de nuevo.');
+            return;
+        }
+
+        // Marcar como entrenado y redirigir
+        setAlreadyTrained(true);
+        navigate('/progress');
+    };
+
+    const handleLogout = async () => {
+        await supabase.auth.signOut();
         navigate('/login');
     };
 
+    const TODAY = {
+        day: new Date().toLocaleDateString('es-MX', { weekday: 'long' }).toUpperCase(),
+        num: new Date().getDate(),
+        month: new Date().toLocaleDateString('es-MX', { month: 'long' }).toUpperCase(),
+    };
+
+    const WEEK_LABELS = ['LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB', 'DOM'];
+
+    const [alreadyTrained, setAlreadyTrained] = useState(false);
+    const [sessionCheckLoading, setSessionCheckLoading] = useState(true);
+    const [weekSessions, setWeekSessions] = useState<any[]>([]);
+
+    // Verificar si ya entrenó hoy
+    useEffect(() => {
+        if (!user?.id) return;
+
+        const today = new Date().toISOString().split('T')[0];
+
+        supabase
+            .from('workout_sessions')
+            .select('id')
+            .eq('user_id', user.id)
+            .eq('date', today)
+            .limit(1)
+            .then(({ data, error }: any) => {
+                if (!error && data && data.length > 0) {
+                    setAlreadyTrained(true);
+                }
+                setSessionCheckLoading(false);
+            });
+    }, [user?.id]);
+
+    // Cargar sesiones de la semana desde Supabase
+    useEffect(() => {
+        if (!user?.id) return;
+
+        const today = new Date();
+        const startOfWeek = new Date(today);
+        startOfWeek.setDate(today.getDate() - today.getDay() + 1);
+        startOfWeek.setHours(0, 0, 0, 0);
+
+        const endOfWeek = new Date(startOfWeek);
+        endOfWeek.setDate(startOfWeek.getDate() + 6);
+        endOfWeek.setHours(23, 59, 59, 999);
+
+        supabase
+            .from('workout_sessions')
+            .select('date')
+            .eq('user_id', user.id)
+            .gte('date', startOfWeek.toISOString().split('T')[0])
+            .lte('date', endOfWeek.toISOString().split('T')[0])
+            .then(({ data }: any) => {
+                if (data) setWeekSessions(data);
+            });
+    }, [user?.id, alreadyTrained]);
+
+    const WEEK_DATA = useMemo(() => {
+        const today = new Date();
+        const startOfWeek = new Date(today);
+        startOfWeek.setDate(today.getDate() - today.getDay() + 1);
+        startOfWeek.setHours(0, 0, 0, 0);
+
+        return WEEK_LABELS.map((_, i) => {
+            const dayDate = new Date(startOfWeek);
+            dayDate.setDate(startOfWeek.getDate() + i);
+            const dayStr = dayDate.toISOString().split('T')[0];
+            const daySessions = weekSessions.filter((s: any) => s.date === dayStr);
+            return daySessions.length === 0 ? 0 : 100;
+        });
+    }, [weekSessions]);
+
+    // ─── JSX ───
     return (
         <div className={styles.container}>
-            {/* ─── Mobile Header ─── */}
             <div className={styles.mobileTopBar}>
                 <button className={styles.hamburger} onClick={() => setMenuOpen(true)}>
                     <Menu size={24} />
@@ -55,7 +218,6 @@ export default function DashboardLocal() {
                 </span>
             </div>
 
-            {/* ─── Sidebar (Navegación) ─── */}
             {menuOpen && <div className={styles.overlay} onClick={() => setMenuOpen(false)} />}
             <aside className={`${styles.sidebar} ${menuOpen ? styles.sidebarOpen : ''}`}>
                 <div className={styles.sidebarHeader}>
@@ -63,80 +225,171 @@ export default function DashboardLocal() {
                         <Dumbbell size={20} />
                         <span>CHARLY <span className={styles.silverHero}>COACH</span></span>
                     </div>
-                    <button className={styles.closeMenu} onClick={() => setMenuOpen(false)}><X size={20}/></button>
+                    <button className={styles.closeMenu} onClick={() => setMenuOpen(false)}>
+                        <X size={20} />
+                    </button>
                 </div>
-
                 <nav className={styles.menu}>
-                    <Link 
-                        to="/dashboard" 
-                        className={location.pathname === '/dashboard' ? styles.menuItemActive : styles.menuItem} 
-                        onClick={() => setMenuOpen(false)}
-                    >
-                        <Dumbbell size={20}/> MI PLAN
+                    <Link to="/dashboard" className={location.pathname === '/dashboard' ? styles.menuItemActive : styles.menuItem} onClick={() => setMenuOpen(false)}>
+                        <Dumbbell size={20} /> MI PLAN
                     </Link>
-                    <Link 
-                        to="/progress" 
-                        className={location.pathname === '/progress' ? styles.menuItemActive : styles.menuItem} 
-                        onClick={() => setMenuOpen(false)}
-                    >
-                        <TrendingUp size={20}/> PROGRESO
+                    <Link to="/progress" className={location.pathname === '/progress' ? styles.menuItemActive : styles.menuItem} onClick={() => setMenuOpen(false)}>
+                        <TrendingUp size={20} /> PROGRESO
                     </Link>
-                    <Link 
-                        to="/dashboard" 
-                        className={location.pathname === '/historial' ? styles.menuItemActive : styles.menuItem} 
-                        onClick={() => setMenuOpen(false)}
-                    >
-                        <Calendar size={20}/> HISTORIAL
+                    <Link to="/dashboard" className={location.pathname === '/historial' ? styles.menuItemActive : styles.menuItem} onClick={() => setMenuOpen(false)}>
+                        <Calendar size={20} /> HISTORIAL
                     </Link>
-                    <Link 
-                        to="/profile" 
-                        className={location.pathname === '/profile' ? styles.menuItemActive : styles.menuItem} 
-                        onClick={() => setMenuOpen(false)}
-                    >
-                        <User size={20}/> PERFIL
+                    <Link to="/profile" className={location.pathname === '/profile' ? styles.menuItemActive : styles.menuItem} onClick={() => setMenuOpen(false)}>
+                        <User size={20} /> PERFIL
                     </Link>
                 </nav>
-
                 <button className={styles.logout} onClick={handleLogout}>
-                    <LogOut size={20}/> SALIR
+                    <LogOut size={20} /> SALIR
                 </button>
             </aside>
 
-            {/* ─── Contenido Principal ─── */}
             <main className={styles.main}>
                 <header className={styles.header}>
                     <h1>{TODAY.day} <span className={styles.silverHero}>{TODAY.num}</span></h1>
-                    <p>{TODAY.month} · Hoy toca: <strong>{TODAY.focus}</strong></p>
+                    <p>{TODAY.month} · Hoy toca: <strong>{todayDay ? TODAY.day : 'DESCANSO'}</strong></p>
                 </header>
 
                 <div className={styles.contentGrid}>
-                    {/* Columna de Entrenamiento */}
                     <section className={styles.workoutBox}>
                         <h2 className={styles.sectionTitle}>RUTINA OPERATIVA</h2>
-                        <div className={styles.exerciseList}>
-                            {exercises.map((ex, i) => (
-                                <div key={i} 
-                                     className={ex.done ? styles.exerciseDone : styles.exerciseCard}
-                                     onClick={() => toggleExercise(i)}>
-                                    <div className={styles.exerciseInfo}>
-                                        <span className={styles.exName}>{ex.name}</span>
-                                        <span className={styles.exMeta}>{ex.sets} · {ex.reps}</span>
-                                        <div className={styles.weightRow}>
-                                            <span className={styles.weightUnit}>{ex.weight} {unit}</span>
-                                        </div>
-                                    </div>
-                                    <div className={styles.checkCircle}>
-                                        {ex.done && <Check size={20} color="#4ade80" />}
-                                    </div>
+
+                        {sessionCheckLoading || loading ? (
+                            <div style={{ textAlign: 'center', padding: '3rem', color: '#666' }}>
+                                <Loader size={32} style={{ animation: 'spin 1s linear infinite', marginBottom: '1rem' }} />
+                                <p style={{ fontSize: '0.75rem', letterSpacing: '0.1em' }}>CARGANDO RUTINA...</p>
+                            </div>
+                        ) : alreadyTrained ? (
+                            <div style={{
+                                textAlign: 'center',
+                                padding: '3rem 1.5rem',
+                                color: '#BCC6CC'
+                            }}>
+                                <div style={{
+                                    fontSize: '2.5rem',
+                                    marginBottom: '1rem',
+                                    filter: 'drop-shadow(0 0 10px rgba(188,198,204,0.3))'
+                                }}>
+                                    🏆
                                 </div>
-                            ))}
-                        </div>
-                        <button className={styles.finishBtn}>
-                            <Flag size={18} /> FINALIZAR SESIÓN
-                        </button>
+                                <h3 style={{
+                                    fontSize: '1.1rem',
+                                    fontWeight: 800,
+                                    letterSpacing: '0.05em',
+                                    marginBottom: '0.75rem',
+                                    background: 'linear-gradient(110deg, #808080 0%, #BCC6CC 45%, #FFFFFF 50%, #BCC6CC 55%, #808080 100%)',
+                                    backgroundSize: '200% auto',
+                                    WebkitBackgroundClip: 'text',
+                                    WebkitTextFillColor: 'transparent'
+                                }}>
+                                    ¡OBJETIVO CUMPLIDO!
+                                </h3>
+                                <p style={{
+                                    fontSize: '0.85rem',
+                                    color: '#888',
+                                    lineHeight: '1.6',
+                                    maxWidth: '340px',
+                                    margin: '0 auto 1.5rem'
+                                }}>
+                                    Cumpliste con los objetivos de hoy. Mañana te esperan nuevos logros por alcanzar.
+                                </p>
+                                <div style={{
+                                    display: 'flex',
+                                    gap: '0.75rem',
+                                    justifyContent: 'center',
+                                    flexWrap: 'wrap'
+                                }}>
+                                    <button
+                                        onClick={() => navigate('/progress')}
+                                        style={{
+                                            padding: '0.75rem 1.5rem',
+                                            borderRadius: '12px',
+                                            border: '1px solid rgba(188,198,204,0.15)',
+                                            background: 'rgba(188,198,204,0.04)',
+                                            color: '#BCC6CC',
+                                            fontSize: '0.7rem',
+                                            fontWeight: 700,
+                                            letterSpacing: '0.1em',
+                                            cursor: 'pointer',
+                                            fontFamily: 'inherit'
+                                        }}
+                                    >
+                                        VER MI PROGRESO
+                                    </button>
+                                    <button
+                                        onClick={() => navigate('/profile')}
+                                        style={{
+                                            padding: '0.75rem 1.5rem',
+                                            borderRadius: '12px',
+                                            border: '1px solid rgba(188,198,204,0.08)',
+                                            background: 'transparent',
+                                            color: '#666',
+                                            fontSize: '0.7rem',
+                                            fontWeight: 700,
+                                            letterSpacing: '0.1em',
+                                            cursor: 'pointer',
+                                            fontFamily: 'inherit'
+                                        }}
+                                    >
+                                        ACTUALIZAR PERFIL
+                                    </button>
+                                </div>
+                            </div>
+                        ) : error ? (
+                            <div style={{ textAlign: 'center', padding: '3rem', color: '#f87171' }}>
+                                <p style={{ fontSize: '0.75rem', letterSpacing: '0.05em' }}>Error al cargar la rutina</p>
+                                <p style={{ fontSize: '0.65rem', marginTop: '0.5rem', color: '#888' }}>{error}</p>
+                            </div>
+                        ) : !todayDay ? (
+                            <div style={{ textAlign: 'center', padding: '3rem', color: '#666' }}>
+                                <p style={{ fontSize: '0.85rem', letterSpacing: '0.08em' }}>DÍA DE DESCANSO</p>
+                                <p style={{ fontSize: '0.7rem', marginTop: '0.5rem', color: '#555' }}>
+                                    {plan ? 'Vuelve mañana para tu próxima sesión.' : 'No tienes una rutina activa. Contacta a tu coach.'}
+                                </p>
+                            </div>
+                        ) : (
+                            <>
+                                <div className={styles.exerciseList}>
+                                    {currentExercises.map((ex, i) => (
+                                        <div
+                                            key={i}
+                                            className={ex.done ? styles.exerciseDone : styles.exerciseCard}
+                                            onClick={() => toggleExercise(i)}
+                                        >
+                                            <div className={styles.exerciseInfo}>
+                                                <span className={styles.exName}>{ex.name}</span>
+                                                <span className={styles.exMeta}>
+                                                    {ex.sets} series · {ex.reps} reps
+                                                </span>
+                                                <div className={styles.weightRow}>
+                                                    <input
+                                                        type="number"
+                                                        className={styles.weightInput}
+                                                        value={ex.weight || ''}
+                                                        placeholder="0"
+                                                        onChange={(e) => updateWeight(i, +e.target.value)}
+                                                        onClick={(e) => e.stopPropagation()}
+                                                    />
+                                                    <span className={styles.weightUnit}>{unit}</span>
+                                                </div>
+                                            </div>
+                                            <div className={styles.checkCircle}>
+                                                {ex.done && <Check size={20} color="#4ade80" />}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                                <button className={styles.finishBtn} onClick={handleFinishSession}>
+                                    <Flag size={18} /> FINALIZAR SESIÓN
+                                </button>
+                            </>
+                        )}
                     </section>
 
-                    {/* Columna de Stats */}
                     <aside className={styles.summaryBox}>
                         <div className={styles.statCard}>
                             <h3 className={styles.statCardTitle}>PROGRESO DE HOY</h3>
@@ -144,10 +397,16 @@ export default function DashboardLocal() {
                                 <div className={styles.progressCircle}>
                                     <span className={styles.progressCircleValue}>{progressPct}%</span>
                                 </div>
-                                <span className={styles.progressLabel}>{completed} de {exercises.length} completados</span>
+                                <span className={styles.progressLabel}>
+                                    {completed} de {currentExercises.length} completados
+                                </span>
+                                {totalVolume > 0 && (
+                                    <p style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: '#888' }}>
+                                        VOLUMEN: {totalVolume.toLocaleString()} {unit}
+                                    </p>
+                                )}
                             </div>
                         </div>
-
                         <div className={styles.statCard}>
                             <h3 className={styles.statCardTitle}>CONSISTENCIA SEMANAL</h3>
                             <div className={styles.chartBars}>
@@ -156,10 +415,11 @@ export default function DashboardLocal() {
                                 ))}
                             </div>
                             <div className={styles.barLabels}>
-                                {WEEK_LABELS.map(l => <span key={l} className={styles.barLabel}>{l}</span>)}
+                                {WEEK_LABELS.map((l) => (
+                                    <span key={l} className={styles.barLabel}>{l}</span>
+                                ))}
                             </div>
                         </div>
-
                         <div className={styles.actionCard}>
                             <p>¿Alguna duda con la técnica?</p>
                             <button className={styles.whatsappBtn}>

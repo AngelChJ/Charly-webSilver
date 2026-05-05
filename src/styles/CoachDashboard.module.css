@@ -1,0 +1,393 @@
+.container {
+    min-height: 100vh;
+    background: #080808;
+    color: #BCC6CC;
+    font-family: system-ui, -apple-system, sans-serif;
+    display: flex;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 260px;
+    background: #0a0a0a;
+    padding: 2rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    border-right: 1px solid rgba(188,198,204,0.08);
+    position: sticky;
+    top: 0;
+    height: 100vh;
+}
+
+.logo {
+    font-size: 1.2rem;
+    font-weight: 900;
+    font-style: italic;
+    letter-spacing: -0.02em;
+}
+
+.silverText {
+    background: linear-gradient(110deg, #808080 0%, #BCC6CC 45%, #FFFFFF 50%, #BCC6CC 55%, #808080 100%);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.tabBtn {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+    border-radius: 10px;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    border: 1px solid transparent;
+    cursor: pointer;
+    font-family: inherit;
+    background: transparent;
+    color: #666;
+    transition: all 0.2s ease;
+}
+
+.tabBtn.active {
+    background: rgba(188,198,204,0.06);
+    color: #e8e8e8;
+    border-color: rgba(188,198,204,0.12);
+}
+
+.logoutBtn {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+    border-radius: 10px;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: #555;
+    cursor: pointer;
+    border: 1px solid transparent;
+    font-family: inherit;
+    background: none;
+    margin-top: auto;
+    transition: all 0.2s ease;
+}
+
+.logoutBtn:hover {
+    color: #f87171;
+}
+
+/* Contenido Principal */
+.mainContent {
+    flex: 1;
+    padding: 2.5rem 3rem;
+    overflow-y: auto;
+}
+
+.header {
+    margin-bottom: 2rem;
+}
+
+.pageTitle {
+    font-size: 2rem;
+    font-weight: 900;
+    font-style: italic;
+    letter-spacing: -0.02em;
+    margin: 0;
+}
+
+.pageSubtitle {
+    font-size: 0.8125rem;
+    color: #666;
+    margin-top: 0.5rem;
+}
+
+.addBtn {
+    margin-top: 1rem;
+    padding: 0.6rem 1.25rem;
+    border-radius: 10px;
+    border: 1px solid rgba(188,198,204,0.15);
+    background: rgba(188,198,204,0.06);
+    color: #BCC6CC;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    font-family: inherit;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s ease;
+}
+
+.addBtn:hover {
+    background: rgba(188,198,204,0.1);
+}
+
+/* Atletas */
+.loadingContainer, .emptyContainer {
+    text-align: center;
+    padding: 4rem;
+    color: #666;
+}
+
+.errorContainer {
+    text-align: center;
+    padding: 4rem;
+    color: #f87171;
+}
+
+.athletesGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    gap: 1rem;
+}
+
+.athleteCard {
+    background: #0a0a0a;
+    border: 1px solid rgba(188,198,204,0.08);
+    border-radius: 16px;
+    padding: 1.5rem;
+    transition: all 0.2s ease;
+}
+
+.athleteCard:hover {
+    border-color: rgba(188,198,204,0.15);
+}
+
+.athleteHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.athleteInfo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(188,198,204,0.12), rgba(188,198,204,0.05));
+    border: 1px solid rgba(188,198,204,0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    font-weight: 800;
+    color: #BCC6CC;
+}
+
+.athleteName {
+    font-size: 1rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.athleteEmail {
+    font-size: 0.65rem;
+    color: #666;
+    margin: 0.15rem 0 0;
+}
+
+.badge {
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    padding: 0.3rem 0.75rem;
+    border-radius: 20px;
+}
+
+.statsGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.statItem {
+    font-size: 0.65rem;
+    color: #555;
+}
+
+.statLabel {
+    display: block;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.15rem;
+}
+
+.actionButtons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.actionBtnPrimary {
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    border: 1px solid rgba(188,198,204,0.1);
+    background: rgba(188,198,204,0.04);
+    color: #BCC6CC;
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    font-family: inherit;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    transition: all 0.2s ease;
+}
+
+.actionBtnPrimary:hover {
+    background: rgba(188,198,204,0.08);
+}
+
+.actionBtnSecondary {
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    border: 1px solid rgba(188,198,204,0.08);
+    background: transparent;
+    color: #666;
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    font-family: inherit;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    transition: all 0.2s ease;
+}
+
+.actionBtnSecondary:hover {
+    color: #BCC6CC;
+    border-color: rgba(188,198,204,0.15);
+}
+
+/* Ejercicios */
+.exerciseControls {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.searchInput {
+    flex: 1;
+    min-width: 200px;
+    padding: 0.6rem 1rem;
+    border-radius: 10px;
+    border: 1px solid rgba(188,198,204,0.1);
+    background: rgba(188,198,204,0.03);
+    color: #BCC6CC;
+    font-size: 0.75rem;
+    font-family: inherit;
+    outline: none;
+}
+
+.filterSelect {
+    padding: 0.6rem 1rem;
+    border-radius: 10px;
+    border: 1px solid rgba(188,198,204,0.1);
+    background: rgba(188,198,204,0.03);
+    color: #BCC6CC;
+    font-size: 0.75rem;
+    font-family: inherit;
+    outline: none;
+    cursor: pointer;
+}
+
+.filterSelect option {
+    background: #0a0a0a;
+}
+
+.exerciseCount {
+    font-size: 0.65rem;
+    color: #555;
+    margin-bottom: 1rem;
+}
+
+.exercisesGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 0.75rem;
+}
+
+.exerciseCard {
+    background: #0a0a0a;
+    border: 1px solid rgba(188,198,204,0.06);
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.exerciseCard:hover {
+    border-color: rgba(188,198,204,0.15);
+    background: rgba(188,198,204,0.02);
+}
+
+.exerciseTitle {
+    font-size: 0.85rem;
+    font-weight: 700;
+    margin: 0;
+    color: #BCC6CC;
+}
+
+.exerciseDesc {
+    font-size: 0.65rem;
+    color: #666;
+    margin: 0.35rem 0 0;
+    line-height: 1.4;
+}
+
+.exerciseFooter {
+    margin-top: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.exerciseFocus {
+    font-size: 0.6rem;
+    font-weight: 600;
+    padding: 0.2rem 0.6rem;
+    border-radius: 6px;
+    background: rgba(188,198,204,0.06);
+    color: #888;
+    letter-spacing: 0.03em;
+}
+
+@media (max-width: 768px) {
+    .container {
+        flex-direction: column;
+    }
+    .sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+        padding: 1rem;
+    }
+    .mainContent {
+        padding: 1.5rem;
+    }
+    .athletesGrid {
+        grid-template-columns: 1fr;
+    }
+}

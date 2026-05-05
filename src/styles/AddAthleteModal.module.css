@@ -1,0 +1,331 @@
+/* Overlay y Modal */
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 1rem;
+}
+
+.modal {
+    background: #0a0a0a;
+    border: 1px solid rgba(188,198,204,0.1);
+    border-radius: 20px;
+    width: 100%;
+    max-width: 460px;
+    max-height: 90vh;
+    overflow: auto;
+    padding: 2rem;
+}
+
+/* Header */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.title {
+    font-size: 1.1rem;
+    font-weight: 800;
+    margin: 0;
+    letter-spacing: 0.02em;
+}
+
+.closeBtn {
+    background: none;
+    border: 1px solid rgba(188,198,204,0.1);
+    border-radius: 10px;
+    color: #666;
+    cursor: pointer;
+    padding: 0.5rem;
+    display: flex;
+    transition: all 0.2s ease;
+}
+
+.closeBtn:hover {
+    color: #BCC6CC;
+    border-color: rgba(188,198,204,0.2);
+}
+
+/* Success State */
+.successContainer {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #4ade80;
+}
+
+.successIconBg {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: rgba(74,222,128,0.1);
+    border: 2px solid rgba(74,222,128,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+}
+
+.successTitle {
+    font-weight: 700;
+    font-size: 0.9rem;
+    letter-spacing: 0.05em;
+    margin: 0;
+}
+
+.successText {
+    font-size: 0.75rem;
+    color: #666;
+    margin-top: 0.25rem;
+}
+
+.successSub {
+    font-size: 0.7rem;
+    color: #888;
+    margin-top: 0.25rem;
+}
+
+.successHighlight {
+    font-size: 0.7rem;
+    color: #4ade80;
+    margin-top: 0.5rem;
+    font-weight: 600;
+}
+
+/* Inputs */
+.inputGroup {
+    margin-bottom: 1rem;
+}
+
+.label {
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: #666;
+    letter-spacing: 0.08em;
+    display: block;
+    margin-bottom: 0.35rem;
+}
+
+.inputContainer {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    border-radius: 10px;
+    border: 1px solid rgba(188,198,204,0.1);
+    background: rgba(188,198,204,0.03);
+    transition: border-color 0.2s ease;
+}
+
+.inputContainer:focus-within {
+    border-color: rgba(188,198,204,0.3);
+}
+
+.input {
+    background: none;
+    border: none;
+    outline: none;
+    color: #BCC6CC;
+    font-size: 0.85rem;
+    font-weight: 500;
+    font-family: inherit;
+    width: 100%;
+}
+
+/* Planes de Suscripción */
+.section {
+    margin-bottom: 1.5rem;
+}
+
+.sectionLabel {
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: #666;
+    letter-spacing: 0.08em;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-bottom: 0.5rem;
+}
+
+.plansContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.planBtn {
+    padding: 0.65rem 0.75rem;
+    border-radius: 10px;
+    border: 1px solid rgba(188,198,204,0.08);
+    background: transparent;
+    color: #888;
+    font-size: 0.7rem;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    text-align: left;
+    transition: all 0.2s ease;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.planBtn:hover {
+    border-color: rgba(188,198,204,0.2);
+}
+
+.planBtn.active {
+    border-color: rgba(188,198,204,0.3);
+    background: rgba(188,198,204,0.08);
+    color: #BCC6CC;
+}
+
+.planInfo {
+    letter-spacing: 0.03em;
+}
+
+.planDesc {
+    font-size: 0.6rem;
+    color: #666;
+    margin-top: 0.15rem;
+}
+
+.planPriceBox {
+    text-align: right;
+    flex-shrink: 0;
+    margin-left: 0.75rem;
+}
+
+.planPrice {
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: #888;
+}
+
+.planBtn.active .planPrice {
+    color: #4ade80;
+}
+
+.planMonth {
+    font-size: 0.55rem;
+    color: #666;
+    display: block;
+}
+
+/* Duración */
+.durationLabel {
+    font-size: 0.6rem;
+    color: #666;
+    letter-spacing: 0.05em;
+    display: block;
+    margin-bottom: 0.35rem;
+}
+
+.durationContainer {
+    display: flex;
+    gap: 0.4rem;
+}
+
+.durationBtn {
+    flex: 1;
+    padding: 0.4rem;
+    border-radius: 8px;
+    border: 1px solid rgba(188,198,204,0.08);
+    background: transparent;
+    color: #666;
+    font-size: 0.6rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s ease;
+}
+
+.durationBtn:hover {
+    border-color: rgba(188,198,204,0.2);
+}
+
+.durationBtn.active {
+    border-color: rgba(188,198,204,0.3);
+    background: rgba(188,198,204,0.06);
+    color: #BCC6CC;
+}
+
+.totalText {
+    text-align: right;
+    margin-top: 0.5rem;
+    font-size: 0.65rem;
+    color: #4ade80;
+    font-weight: 700;
+}
+
+/* Estado de Error */
+.errorText {
+    color: #f87171;
+    font-size: 0.7rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+/* Footer Botones */
+.footer {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.cancelBtn {
+    flex: 1;
+    padding: 0.75rem;
+    border-radius: 10px;
+    border: 1px solid rgba(188,198,204,0.08);
+    background: transparent;
+    color: #666;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s ease;
+}
+
+.cancelBtn:hover:not(:disabled) {
+    color: #BCC6CC;
+    border-color: rgba(188,198,204,0.2);
+}
+
+.submitBtn {
+    flex: 1.5;
+    padding: 0.75rem;
+    border-radius: 10px;
+    border: 1px solid rgba(188,198,204,0.15);
+    background: rgba(188,198,204,0.08);
+    color: #BCC6CC;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    font-family: inherit;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.2s ease;
+}
+
+.submitBtn:hover:not(:disabled) {
+    background: rgba(188,198,204,0.12);
+}
+
+.submitBtn:disabled {
+    background: rgba(188,198,204,0.04);
+    opacity: 0.7;
+    cursor: not-allowed;
+}

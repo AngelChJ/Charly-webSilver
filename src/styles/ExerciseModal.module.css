@@ -1,0 +1,284 @@
+/* Overlay y Modal */
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 1rem;
+}
+
+.modal {
+    background: #0a0a0a;
+    border: 1px solid rgba(188, 198, 204, 0.1);
+    border-radius: 20px;
+    width: 100%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow: auto;
+    padding: 2rem;
+}
+
+/* Header */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.title {
+    font-size: 1.1rem;
+    font-weight: 800;
+    margin: 0;
+    letter-spacing: 0.02em;
+}
+
+.closeBtn {
+    background: none;
+    border: 1px solid rgba(188, 198, 204, 0.1);
+    border-radius: 10px;
+    color: #666;
+    cursor: pointer;
+    padding: 0.5rem;
+    display: flex;
+    transition: all 0.2s ease;
+}
+
+.closeBtn:hover {
+    color: #BCC6CC;
+    border-color: rgba(188, 198, 204, 0.2);
+}
+
+/* Inputs generales */
+.inputGroup {
+    margin-bottom: 1rem;
+}
+
+.label {
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: #666;
+    letter-spacing: 0.08em;
+    display: block;
+    margin-bottom: 0.35rem;
+}
+
+.inputContainer {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    border-radius: 10px;
+    border: 1px solid rgba(188, 198, 204, 0.1);
+    background: rgba(188, 198, 204, 0.03);
+    transition: border-color 0.2s ease;
+}
+
+.inputContainer.textareaContainer {
+    align-items: flex-start;
+}
+
+.inputContainer:focus-within {
+    border-color: rgba(188, 198, 204, 0.3);
+}
+
+.input {
+    background: none;
+    border: none;
+    outline: none;
+    color: #BCC6CC;
+    font-size: 0.85rem;
+    font-weight: 500;
+    font-family: inherit;
+    width: 100%;
+}
+
+.textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+/* Grid layout */
+.grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.select {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border-radius: 10px;
+    border: 1px solid rgba(188, 198, 204, 0.1);
+    background: rgba(188, 198, 204, 0.03);
+    color: #BCC6CC;
+    font-size: 0.85rem;
+    font-weight: 500;
+    font-family: inherit;
+    outline: none;
+    appearance: none;
+    transition: border-color 0.2s ease;
+}
+
+.select:focus {
+    border-color: rgba(188, 198, 204, 0.3);
+}
+
+/* Selector de Archivos (Video) */
+.uploadContainer {
+    border: 1px dashed rgba(188, 198, 204, 0.2);
+    background: rgba(188, 198, 204, 0.02);
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.uploadContainer:hover {
+    border-color: rgba(188, 198, 204, 0.4);
+    background: rgba(188, 198, 204, 0.04);
+}
+
+.uploadContainer.hasVideo {
+    border-color: rgba(74, 222, 128, 0.3);
+    background: rgba(74, 222, 128, 0.02);
+}
+
+.uploadIcon {
+    color: #888;
+    margin-bottom: 0.5rem;
+}
+
+.hasVideo .uploadIcon {
+    color: #4ade80;
+}
+
+.uploadTitle {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #BCC6CC;
+    margin-bottom: 0.25rem;
+}
+
+.hasVideo .uploadTitle {
+    color: #4ade80;
+}
+
+.uploadSub {
+    font-size: 0.65rem;
+    color: #666;
+}
+
+.fileInput {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+}
+
+.videoPreview {
+    margin-top: 1rem;
+    width: 100%;
+    border-radius: 8px;
+    border: 1px solid rgba(188, 198, 204, 0.1);
+    background: #000;
+}
+
+/* Estado de error */
+.errorText {
+    color: #f87171;
+    font-size: 0.7rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+/* Footer / Botones */
+.footer {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 2rem;
+}
+
+.cancelBtn {
+    flex: 1;
+    padding: 0.75rem;
+    border-radius: 10px;
+    border: 1px solid rgba(188, 198, 204, 0.08);
+    background: transparent;
+    color: #666;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s ease;
+}
+
+.cancelBtn:hover:not(:disabled) {
+    color: #BCC6CC;
+    border-color: rgba(188, 198, 204, 0.2);
+}
+
+.deleteBtn {
+    padding: 0.75rem;
+    border-radius: 10px;
+    border: 1px solid rgba(248, 113, 113, 0.2);
+    background: transparent;
+    color: #f87171;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    font-family: inherit;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s ease;
+}
+
+.deleteBtn:hover:not(:disabled) {
+    background: rgba(248, 113, 113, 0.1);
+}
+
+.deleteBtn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.saveBtn {
+    flex: 1.5;
+    padding: 0.75rem;
+    border-radius: 10px;
+    border: 1px solid rgba(188, 198, 204, 0.15);
+    background: rgba(188, 198, 204, 0.08);
+    color: #BCC6CC;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    font-family: inherit;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.2s ease;
+}
+
+.saveBtn:hover:not(:disabled) {
+    background: rgba(188, 198, 204, 0.12);
+}
+
+.saveBtn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}

@@ -1,0 +1,287 @@
+/* Overlay */
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 1rem;
+}
+
+/* Modal */
+.modal {
+    background: #0a0a0a;
+    border: 1px solid rgba(188,198,204,0.1);
+    border-radius: 20px;
+    width: 100%;
+    max-width: 700px;
+    max-height: 85vh;
+    overflow: auto;
+    padding: 2rem;
+}
+
+/* Header */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.title {
+    font-size: 1.1rem;
+    font-weight: 800;
+    margin: 0;
+    letter-spacing: 0.02em;
+}
+
+.subtitle {
+    font-size: 0.7rem;
+    color: #666;
+    margin: 0.25rem 0 0;
+}
+
+.closeBtn {
+    background: none;
+    border: 1px solid rgba(188,198,204,0.1);
+    border-radius: 10px;
+    color: #666;
+    cursor: pointer;
+    padding: 0.5rem;
+    display: flex;
+    transition: all 0.2s ease;
+}
+
+.closeBtn:hover {
+    color: #BCC6CC;
+    border-color: rgba(188,198,204,0.2);
+}
+
+/* Formulario */
+.planNameInput {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border-radius: 10px;
+    border: 1px solid rgba(188,198,204,0.1);
+    background: rgba(188,198,204,0.03);
+    color: #BCC6CC;
+    font-size: 0.85rem;
+    font-weight: 600;
+    font-family: inherit;
+    outline: none;
+    margin-bottom: 1.5rem;
+    box-sizing: border-box;
+}
+
+.planNameInput:focus {
+    border-color: rgba(188,198,204,0.3);
+}
+
+.dayCard {
+    background: rgba(188,198,204,0.02);
+    border: 1px solid rgba(188,198,204,0.06);
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+}
+
+.dayHeader {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.daySelect {
+    flex: 1;
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    border: 1px solid rgba(188,198,204,0.1);
+    background: #0a0a0a;
+    color: #BCC6CC;
+    font-size: 0.75rem;
+    font-weight: 600;
+    font-family: inherit;
+    outline: none;
+}
+
+.removeDayBtn {
+    background: none;
+    border: 1px solid rgba(248,113,113,0.2);
+    border-radius: 8px;
+    color: #f87171;
+    cursor: pointer;
+    padding: 0.5rem;
+    display: flex;
+    transition: all 0.2s ease;
+}
+
+.removeDayBtn:hover {
+    background: rgba(248,113,113,0.1);
+}
+
+/* Ejercicios */
+.exerciseRow {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.exerciseSelect {
+    flex: 2;
+    min-width: 150px;
+    padding: 0.4rem 0.5rem;
+    border-radius: 6px;
+    border: 1px solid rgba(188,198,204,0.08);
+    background: #0a0a0a;
+    color: #BCC6CC;
+    font-size: 0.7rem;
+    font-family: inherit;
+    outline: none;
+}
+
+.numberInput {
+    width: 50px;
+    padding: 0.4rem;
+    border-radius: 6px;
+    border: 1px solid rgba(188,198,204,0.08);
+    background: #0a0a0a;
+    color: #BCC6CC;
+    font-size: 0.7rem;
+    font-family: inherit;
+    outline: none;
+    text-align: center;
+}
+
+.multiplier {
+    font-size: 0.6rem;
+    color: #555;
+}
+
+.removeExBtn {
+    background: none;
+    border: none;
+    color: #555;
+    cursor: pointer;
+    padding: 0.25rem;
+    transition: color 0.2s ease;
+}
+
+.removeExBtn:hover {
+    color: #f87171;
+}
+
+.addExBtn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    border: 1px dashed rgba(188,198,204,0.1);
+    background: transparent;
+    color: #666;
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    font-family: inherit;
+    margin-top: 0.5rem;
+    transition: all 0.2s ease;
+}
+
+.addExBtn:hover {
+    color: #BCC6CC;
+    border-color: rgba(188,198,204,0.3);
+}
+
+.addDayBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.75rem;
+    border-radius: 10px;
+    border: 1px dashed rgba(188,198,204,0.12);
+    background: transparent;
+    color: #666;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    font-family: inherit;
+    margin-bottom: 1.5rem;
+    transition: all 0.2s ease;
+}
+
+.addDayBtn:hover {
+    color: #BCC6CC;
+    border-color: rgba(188,198,204,0.3);
+}
+
+/* Estados */
+.errorText {
+    color: #f87171;
+    font-size: 0.7rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+/* Footer / Botones */
+.footer {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.cancelBtn {
+    flex: 1;
+    padding: 0.75rem;
+    border-radius: 10px;
+    border: 1px solid rgba(188,198,204,0.08);
+    background: transparent;
+    color: #666;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s ease;
+}
+
+.cancelBtn:hover {
+    color: #BCC6CC;
+    border-color: rgba(188,198,204,0.2);
+}
+
+.saveBtn {
+    flex: 1;
+    padding: 0.75rem;
+    border-radius: 10px;
+    border: 1px solid rgba(188,198,204,0.15);
+    background: rgba(188,198,204,0.08);
+    color: #BCC6CC;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    font-family: inherit;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.2s ease;
+}
+
+.saveBtn:hover:not(:disabled) {
+    background: rgba(188,198,204,0.12);
+}
+
+.saveBtn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
