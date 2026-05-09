@@ -14,10 +14,16 @@
     display: flex;
     flex-direction: column;
     gap: 2rem;
-    border-right: 1px solid rgba(188,198,204,0.08);
+    border-right: 1px solid rgba(188, 198, 204, 0.08);
     position: sticky;
     top: 0;
     height: 100vh;
+}
+
+.sidebarHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
 
 .logo {
@@ -56,10 +62,15 @@
     transition: all 0.2s ease;
 }
 
+.tabBtn:hover {
+    color: #999;
+    background: rgba(188, 198, 204, 0.04);
+}
+
 .tabBtn.active {
-    background: rgba(188,198,204,0.06);
+    background: rgba(188, 198, 204, 0.06);
     color: #e8e8e8;
-    border-color: rgba(188,198,204,0.12);
+    border-color: rgba(188, 198, 204, 0.12);
 }
 
 .logoutBtn {
@@ -70,17 +81,19 @@
     border-radius: 10px;
     font-size: 0.8125rem;
     font-weight: 700;
-    color: #555;
+    color: #f87171;
     cursor: pointer;
-    border: 1px solid transparent;
+    border: 1px solid rgba(248, 113, 113, 0.2);
     font-family: inherit;
-    background: none;
+    background: rgba(248, 113, 113, 0.05);
     margin-top: auto;
     transition: all 0.2s ease;
 }
 
 .logoutBtn:hover {
-    color: #f87171;
+    color: #fca5a5;
+    background: rgba(248, 113, 113, 0.1);
+    border-color: rgba(248, 113, 113, 0.3);
 }
 
 /* Contenido Principal */
@@ -112,8 +125,8 @@
     margin-top: 1rem;
     padding: 0.6rem 1.25rem;
     border-radius: 10px;
-    border: 1px solid rgba(188,198,204,0.15);
-    background: rgba(188,198,204,0.06);
+    border: 1px solid rgba(188, 198, 204, 0.15);
+    background: rgba(188, 198, 204, 0.06);
     color: #BCC6CC;
     font-size: 0.7rem;
     font-weight: 700;
@@ -127,11 +140,12 @@
 }
 
 .addBtn:hover {
-    background: rgba(188,198,204,0.1);
+    background: rgba(188, 198, 204, 0.1);
 }
 
-/* Atletas */
-.loadingContainer, .emptyContainer {
+/* Estados */
+.loadingContainer,
+.emptyContainer {
     text-align: center;
     padding: 4rem;
     color: #666;
@@ -143,6 +157,7 @@
     color: #f87171;
 }
 
+/* Grid de Atletas */
 .athletesGrid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
@@ -151,14 +166,14 @@
 
 .athleteCard {
     background: #0a0a0a;
-    border: 1px solid rgba(188,198,204,0.08);
+    border: 1px solid rgba(188, 198, 204, 0.08);
     border-radius: 16px;
     padding: 1.5rem;
     transition: all 0.2s ease;
 }
 
 .athleteCard:hover {
-    border-color: rgba(188,198,204,0.15);
+    border-color: rgba(188, 198, 204, 0.15);
 }
 
 .athleteHeader {
@@ -178,14 +193,15 @@
     width: 44px;
     height: 44px;
     border-radius: 50%;
-    background: linear-gradient(135deg, rgba(188,198,204,0.12), rgba(188,198,204,0.05));
-    border: 1px solid rgba(188,198,204,0.15);
+    background: linear-gradient(135deg, rgba(188, 198, 204, 0.12), rgba(188, 198, 204, 0.05));
+    border: 1px solid rgba(188, 198, 204, 0.15);
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 0.9rem;
     font-weight: 800;
     color: #BCC6CC;
+    flex-shrink: 0;
 }
 
 .athleteName {
@@ -235,8 +251,8 @@
 .actionBtnPrimary {
     padding: 0.5rem 1rem;
     border-radius: 8px;
-    border: 1px solid rgba(188,198,204,0.1);
-    background: rgba(188,198,204,0.04);
+    border: 1px solid rgba(188, 198, 204, 0.1);
+    background: rgba(188, 198, 204, 0.04);
     color: #BCC6CC;
     font-size: 0.65rem;
     font-weight: 600;
@@ -252,13 +268,13 @@
 }
 
 .actionBtnPrimary:hover {
-    background: rgba(188,198,204,0.08);
+    background: rgba(188, 198, 204, 0.08);
 }
 
 .actionBtnSecondary {
     padding: 0.5rem 1rem;
     border-radius: 8px;
-    border: 1px solid rgba(188,198,204,0.08);
+    border: 1px solid rgba(188, 198, 204, 0.08);
     background: transparent;
     color: #666;
     font-size: 0.65rem;
@@ -276,10 +292,10 @@
 
 .actionBtnSecondary:hover {
     color: #BCC6CC;
-    border-color: rgba(188,198,204,0.15);
+    border-color: rgba(188, 198, 204, 0.15);
 }
 
-/* Ejercicios */
+/* Controles de Ejercicios */
 .exerciseControls {
     display: flex;
     gap: 0.75rem;
@@ -293,28 +309,39 @@
     min-width: 200px;
     padding: 0.6rem 1rem;
     border-radius: 10px;
-    border: 1px solid rgba(188,198,204,0.1);
-    background: rgba(188,198,204,0.03);
+    border: 1px solid rgba(188, 198, 204, 0.1);
+    background: rgba(188, 198, 204, 0.03);
     color: #BCC6CC;
     font-size: 0.75rem;
     font-family: inherit;
     outline: none;
+    transition: border-color 0.2s ease;
+}
+
+.searchInput:focus {
+    border-color: rgba(188, 198, 204, 0.25);
 }
 
 .filterSelect {
     padding: 0.6rem 1rem;
     border-radius: 10px;
-    border: 1px solid rgba(188,198,204,0.1);
-    background: rgba(188,198,204,0.03);
+    border: 1px solid rgba(188, 198, 204, 0.1);
+    background: rgba(188, 198, 204, 0.03);
     color: #BCC6CC;
     font-size: 0.75rem;
     font-family: inherit;
     outline: none;
     cursor: pointer;
+    transition: border-color 0.2s ease;
+}
+
+.filterSelect:focus {
+    border-color: rgba(188, 198, 204, 0.25);
 }
 
 .filterSelect option {
     background: #0a0a0a;
+    color: #BCC6CC;
 }
 
 .exerciseCount {
@@ -323,6 +350,7 @@
     margin-bottom: 1rem;
 }
 
+/* Grid de Ejercicios */
 .exercisesGrid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -331,7 +359,7 @@
 
 .exerciseCard {
     background: #0a0a0a;
-    border: 1px solid rgba(188,198,204,0.06);
+    border: 1px solid rgba(188, 198, 204, 0.06);
     border-radius: 12px;
     padding: 1rem 1.25rem;
     cursor: pointer;
@@ -339,8 +367,8 @@
 }
 
 .exerciseCard:hover {
-    border-color: rgba(188,198,204,0.15);
-    background: rgba(188,198,204,0.02);
+    border-color: rgba(188, 198, 204, 0.15);
+    background: rgba(188, 198, 204, 0.02);
 }
 
 .exerciseTitle {
@@ -369,25 +397,340 @@
     font-weight: 600;
     padding: 0.2rem 0.6rem;
     border-radius: 6px;
-    background: rgba(188,198,204,0.06);
+    background: rgba(188, 198, 204, 0.06);
     color: #888;
     letter-spacing: 0.03em;
 }
 
-@media (max-width: 768px) {
+/* ============================================
+   MOBILE TOP BAR (oculto en desktop)
+   ============================================ */
+.mobileTopBar {
+    display: none;
+}
+
+.mobileLogo {
+    display: none;
+}
+
+.hamburger {
+    display: none;
+}
+
+.overlay {
+    display: none;
+}
+
+.closeMenu {
+    display: none;
+}
+
+/* ============================================
+   RESPONSIVE - TABLET (768px - 1024px)
+   ============================================ */
+@media (max-width: 1024px) {
     .container {
         flex-direction: column;
     }
+
     .sidebar {
         width: 100%;
         height: auto;
-        position: relative;
-        padding: 1rem;
+        position: sticky;
+        flex-direction: row;
+        padding: 0.75rem 1.5rem;
+        gap: 0;
+        align-items: center;
     }
+
+    .sidebarHeader {
+        display: contents;
+    }
+
+    .closeMenu {
+        display: none;
+    }
+
+    .logo {
+        font-size: 1rem;
+        margin-right: auto;
+    }
+
+    .nav {
+        flex-direction: row;
+        gap: 0.125rem;
+        margin: 0 1rem;
+    }
+
+    .tabBtn {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.8125rem;
+        white-space: nowrap;
+    }
+
+    .logoutBtn {
+        margin-top: 0;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.8125rem;
+        width: auto;
+    }
+
     .mainContent {
         padding: 1.5rem;
     }
+
+    .pageTitle {
+        font-size: 1.5rem;
+    }
+
     .athletesGrid {
         grid-template-columns: 1fr;
+    }
+
+    .exercisesGrid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ============================================
+   RESPONSIVE - MOBILE (< 768px)
+   Sidebar oculto, se despliega con hamburguesa
+   ============================================ */
+@media (max-width: 768px) {
+    .mobileTopBar {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 100;
+        padding: 0.75rem 1rem;
+        background: #080808;
+        border-bottom: 1px solid rgba(188, 198, 204, 0.06);
+    }
+
+    .mobileLogo {
+        display: block;
+        font-size: 0.9375rem;
+        font-weight: 900;
+        font-style: italic;
+        letter-spacing: -0.02em;
+        flex: 1;
+        text-align: center;
+    }
+
+    .hamburger {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        border: 1px solid rgba(188, 198, 204, 0.1);
+        background: #0a0a0a;
+        color: #ccc;
+        cursor: pointer;
+        flex-shrink: 0;
+        transition: all 0.2s ease;
+    }
+
+    .hamburger:hover {
+        border-color: rgba(188, 198, 204, 0.2);
+    }
+
+    .overlay {
+        display: block;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(4px);
+        z-index: 150;
+        animation: fadeIn 0.2s ease;
+    }
+
+    .sidebar {
+        display: flex;
+        flex-direction: column;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 280px;
+        height: 100vh;
+        z-index: 200;
+        flex-direction: column;
+        padding: 1.5rem;
+        gap: 2rem;
+        border-right: 1px solid rgba(188, 198, 204, 0.08);
+        transform: translateX(-100%);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .sidebarOpen {
+        transform: translateX(0);
+    }
+
+    .sidebarHeader {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+    }
+
+    .closeMenu {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        border: 1px solid rgba(188, 198, 204, 0.08);
+        background: transparent;
+        color: #666;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .closeMenu:hover {
+        color: #ccc;
+        border-color: rgba(188, 198, 204, 0.15);
+    }
+
+    .logo {
+        font-size: 1rem;
+    }
+
+    .nav {
+        flex-direction: column;
+        gap: 0.25rem;
+        margin: 0;
+    }
+
+    .tabBtn {
+        padding: 0.875rem 1rem;
+        font-size: 0.9375rem;
+        white-space: nowrap;
+    }
+
+    .logoutBtn {
+        /* mobile */
+        margin-top: auto;
+        margin-bottom: 1rem;
+        padding: 0.875rem 1rem;
+        font-size: 0.9375rem;
+        width: 100%;
+    }
+
+    .mainContent {
+        padding: 1rem;
+        padding-top: 5.5rem;
+    }
+
+    .header {
+        margin-bottom: 1.5rem;
+    }
+
+    .pageTitle {
+        font-size: 1.5rem;
+    }
+
+    .addBtn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .athletesGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .athleteCard {
+        padding: 1rem;
+        border-radius: 12px;
+    }
+
+    .statsGrid {
+        gap: 0.5rem;
+    }
+
+    .actionButtons {
+        flex-direction: column;
+    }
+
+    .exerciseControls {
+        flex-direction: column;
+    }
+
+    .searchInput {
+        min-width: 100%;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .filterSelect {
+        width: 100%;
+    }
+
+    .exercisesGrid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ============================================
+   RESPONSIVE - SMALL MOBILE (< 480px)
+   ============================================ */
+@media (max-width: 480px) {
+    .sidebar {
+        width: 260px;
+        padding: 1.25rem;
+    }
+
+    .tabBtn {
+        padding: 0.75rem 0.875rem;
+        font-size: 0.875rem;
+    }
+
+    .logoutBtn {
+        padding: 0.75rem 0.875rem;
+        font-size: 0.875rem;
+    }
+
+    .mainContent {
+        padding: 0.75rem;
+        padding-top: 5rem;
+    }
+
+    .pageTitle {
+        font-size: 1.25rem;
+    }
+
+    .athleteCard {
+        padding: 0.875rem;
+        border-radius: 10px;
+    }
+
+    .athleteHeader {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .badge {
+        align-self: flex-start;
+    }
+
+    .statsGrid {
+        grid-template-columns: 1fr 1fr;
+        gap: 0.4rem;
+    }
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
     }
 }

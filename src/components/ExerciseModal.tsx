@@ -194,12 +194,16 @@ export default function ExerciseModal({ exercise, onClose, onSaved }: Props) {
                     <form onSubmit={(e) => { e.preventDefault(); handleSave(); }}>
                         <div className={styles.inputGroup}>
                             <label className={styles.label}>NOMBRE DEL EJERCICIO</label>
-                            <input type="text" className={styles.input} value={name} onChange={(e) => setName(e.target.value)} disabled={saving} />
+                            <div className={styles.inputContainer}>
+                                <input type="text" className={styles.input} value={name} onChange={(e) => setName(e.target.value)} disabled={saving} />
+                            </div>
                         </div>
 
                         <div className={styles.inputGroup}>
                             <label className={styles.label}>DESCRIPCIÓN (Opcional)</label>
-                            <textarea className={`${styles.input} ${styles.textarea}`} value={description} onChange={(e) => setDescription(e.target.value)} disabled={saving} />
+                            <div className={styles.inputContainer}>
+                                <textarea className={`${styles.input} ${styles.textarea}`} value={description} onChange={(e) => setDescription(e.target.value)} disabled={saving} />
+                            </div>
                         </div>
 
                         <div className={styles.inputGroup}>
@@ -225,7 +229,6 @@ export default function ExerciseModal({ exercise, onClose, onSaved }: Props) {
                                 )}
                             </div>
 
-                            {/* URL manual */}
                             <div className={styles.inputContainer} style={{ marginTop: '0.5rem' }}>
                                 <input
                                     type="text"

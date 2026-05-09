@@ -100,21 +100,21 @@
     border-radius: 10px;
     font-size: 0.8125rem;
     font-weight: 700;
-    color: #555;
+    color: #f87171;
     cursor: pointer;
-    border: 1px solid transparent;
+    border: 1px solid rgba(248, 113, 113, 0.2);
     width: 100%;
     text-align: left;
-    background: none;
+    background: rgba(248, 113, 113, 0.05);
     font-family: inherit;
     margin-top: auto;
     transition: all 0.2s ease;
 }
 
 .logout:hover {
-    color: #f87171;
-    background: rgba(248, 113, 113, 0.04);
-    border-color: rgba(248, 113, 113, 0.1);
+    color: #fca5a5;
+    background: rgba(248, 113, 113, 0.1);
+    border-color: rgba(248, 113, 113, 0.3);
 }
 
 /* ─── MAIN CONTENT ─── */
@@ -753,6 +753,8 @@
 
     /* Sidebar: hidden by default, slides in from left */
     .sidebar {
+        display: flex;
+        flex-direction: column;
         position: fixed;
         top: 0;
         left: 0;
@@ -826,7 +828,9 @@
     }
 
     .logout {
+        /*mobile */
         margin-top: auto;
+        margin-bottom: 1rem;
         padding: 0.875rem 1rem;
         font-size: 0.9375rem;
         width: 100%;

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Dumbbell, Users, Calendar, TrendingUp, LogOut, Loader, UserPlus, Play } from 'lucide-react';
+import { Dumbbell, Users, Calendar, TrendingUp, LogOut, Loader, UserPlus, Play, Menu, X } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../hooks/useAuth';
 import RoutineModal from '../components/RoutineModal';
@@ -42,6 +42,7 @@ export default function CoachDashboard() {
     const [exerciseSearch, setExerciseSearch] = useState('');
     const [exerciseFilter, setExerciseFilter] = useState<number | 'all'>('all');
     const [exerciseSort, setExerciseSort] = useState<'name' | 'focus'>('name');
+    const [menuOpen, setMenuOpen] = useState(false);
 
     const loadExercises = async () => {
         const { data: exData } = await supabase.from('exercises').select('*').order('name');
@@ -93,13 +94,38 @@ export default function CoachDashboard() {
 
     return (
         <div className={styles.container}>
-            <aside className={styles.sidebar}>
-                <div className={styles.logo}>
+            {/* Mobile Header */}
+            <div className={styles.mobileTopBar}>
+                <button className={styles.hamburger} onClick={() => setMenuOpen(true)}>
+                    <Menu size={24} />
+                </button>
+                <span className={styles.mobileLogo}>
                     CHARLY <span className={styles.silverText}>COACH</span>
+                </span>
+            </div>
+
+            {/* Overlay */}
+            {menuOpen && <div className={styles.overlay} onClick={() => setMenuOpen(false)} />}
+
+            {/* Sidebar */}
+            <aside className={`${styles.sidebar} ${menuOpen ? styles.sidebarOpen : ''}`}>
+                <div className={styles.sidebarHeader}>
+                    <div className={styles.logo}>
+                        CHARLY <span className={styles.silverText}>COACH</span>
+                    </div>
+                    <button className={styles.closeMenu} onClick={() => setMenuOpen(false)}>
+                        <X size={20} />
+                    </button>
                 </div>
                 <nav className={styles.nav}>
                     {tabs.map((tab) => (
-                        <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`${styles.tabBtn} ${activeTab === tab.id ? styles.active : ''}`}>{tab.icon} {tab.label}</button>
+                        <button
+                            key={tab.id}
+                            onClick={() => { setActiveTab(tab.id); setMenuOpen(false); }}
+                            className={`${styles.tabBtn} ${activeTab === tab.id ? styles.active : ''}`}
+                        >
+                            {tab.icon} {tab.label}
+                        </button>
                     ))}
                 </nav>
                 <button onClick={handleLogout} className={styles.logoutBtn}><LogOut size={20} /> SALIR</button>
@@ -114,6 +140,7 @@ export default function CoachDashboard() {
                     )}
                 </header>
 
+                {/* Tab: Atletas */}
                 {activeTab === 'athletes' && (
                     <div>
                         {loading ? <div className={styles.loadingContainer}><Loader size={32} style={{ animation: 'spin 1s linear infinite', marginBottom: '1rem' }} /><p>CARGANDO ATLETAS...</p></div>
@@ -148,13 +175,36 @@ export default function CoachDashboard() {
                     </div>
                 )}
 
+                {/* Tab: Rutinas */}
                 {activeTab === 'routines' && (
-                    <div className={styles.loadingContainer}>
-                        <p style={{ fontSize: '0.85rem', letterSpacing: '0.05em' }}>GESTOR DE RUTINAS</p>
-                        <p style={{ fontSize: '0.75rem', marginTop: '0.5rem', color: '#555' }}>Selecciona la pestaña ATLETAS y haz clic en "ASIGNAR RUTINA"</p>
+                    <div>
+                        {loading ? (
+                            <div className={styles.loadingContainer}><Loader size={32} style={{ animation: 'spin 1s linear infinite', marginBottom: '1rem' }} /><p>CARGANDO RUTINAS...</p></div>
+                        ) : (
+                            <div className={styles.athletesGrid}>
+                                {athletes.map((athlete) => (
+                                    <div key={athlete.id} className={styles.athleteCard}>
+                                        <div className={styles.athleteHeader}>
+                                            <div className={styles.athleteInfo}>
+                                                <div className={styles.avatar}>{athlete.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}</div>
+                                                <div>
+                                                    <h3 className={styles.athleteName}>{athlete.name}</h3>
+                                                    <p className={styles.athleteEmail}>Plan: {athlete.current_plan ?? 'Sin plan asignado'}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className={styles.actionButtons}>
+                                            <button onClick={() => setSelectedAthlete({ id: athlete.id, name: athlete.name })} className={styles.actionBtnPrimary} style={{ flex: 1 }}><Dumbbell size={14} /> {athlete.current_plan ? 'CAMBIAR RUTINA' : 'ASIGNAR RUTINA'}</button>
+                                        </div>
+                                    </div>
+                                ))}
+                                {athletes.length === 0 && <p style={{ textAlign: 'center', color: '#666', gridColumn: '1/-1', padding: '2rem' }}>No hay atletas para asignar rutinas</p>}
+                            </div>
+                        )}
                     </div>
                 )}
 
+                {/* Tab: Ejercicios */}
                 {activeTab === 'exercises' && (
                     <div>
                         <div className={styles.exerciseControls}>
@@ -182,14 +232,14 @@ export default function CoachDashboard() {
                                             {filtered.map((ex) => {
                                                 const focus = focuses.find(f => f.id === ex.focus_id);
                                                 return (
-                                <div key={ex.id} onClick={() => { setSelectedExercise(ex); setShowExerciseModal(true); }} className={styles.exerciseCard}>
-                                    <h4 className={styles.exerciseTitle}>{ex.name}</h4>
-                                    {ex.description && <p className={styles.exerciseDesc}>{ex.description.length > 80 ? ex.description.slice(0, 80) + '...' : ex.description}</p>}
-                                    <div className={styles.exerciseFooter}>
-                                        <span className={styles.exerciseFocus}>{focus?.name || 'Sin grupo'}</span>
-                                        {ex.video_url && <span title="Tiene video"><Play size={14} color="#4ade80" /></span>}
-                                    </div>
-                                </div>
+                                                    <div key={ex.id} onClick={() => { setSelectedExercise(ex); setShowExerciseModal(true); }} className={styles.exerciseCard}>
+                                                        <h4 className={styles.exerciseTitle}>{ex.name}</h4>
+                                                        {ex.description && <p className={styles.exerciseDesc}>{ex.description.length > 80 ? ex.description.slice(0, 80) + '...' : ex.description}</p>}
+                                                        <div className={styles.exerciseFooter}>
+                                                            <span className={styles.exerciseFocus}>{focus?.name || 'Sin grupo'}</span>
+                                                            {ex.video_url && <Play size={14} color="#4ade80" />}
+                                                        </div>
+                                                    </div>
                                                 );
                                             })}
                                         </div>}
@@ -200,6 +250,7 @@ export default function CoachDashboard() {
                 )}
             </main>
 
+            {/* Modales */}
             {selectedAthlete && <RoutineModal athleteId={selectedAthlete.id} athleteName={selectedAthlete.name} onClose={() => setSelectedAthlete(null)} onSaved={() => { setSelectedAthlete(null); fetchAthletes(); }} />}
             {showAddAthlete && <AddAthleteModal onClose={() => setShowAddAthlete(false)} onCreated={() => { setShowAddAthlete(false); fetchAthletes(); }} />}
             {selectedAthleteForSub && <SubscriptionModal athleteId={selectedAthleteForSub.id} athleteName={selectedAthleteForSub.name} onClose={() => setSelectedAthleteForSub(null)} onSaved={() => { setSelectedAthleteForSub(null); fetchAthletes(); }} />}

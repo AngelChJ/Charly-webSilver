@@ -1,5 +1,5 @@
 import { useNavigate, Link, useLocation } from 'react-router-dom';
-import { Dumbbell, Check, User, LogOut, TrendingUp, Calendar, Menu, X, Flag, MessageCircle, Loader } from 'lucide-react';
+import { Dumbbell, Check, User, LogOut, TrendingUp, Menu, X, Flag, MessageCircle, Loader } from 'lucide-react';
 import styles from '../styles/Dashboard.module.css';
 import { supabase } from '../lib/supabaseClient';
 import { useWorkout } from '../hooks/useWorkout';
@@ -235,9 +235,6 @@ export default function Dashboard() {
                     </Link>
                     <Link to="/progress" className={location.pathname === '/progress' ? styles.menuItemActive : styles.menuItem} onClick={() => setMenuOpen(false)}>
                         <TrendingUp size={20} /> PROGRESO
-                    </Link>
-                    <Link to="/dashboard" className={location.pathname === '/historial' ? styles.menuItemActive : styles.menuItem} onClick={() => setMenuOpen(false)}>
-                        <Calendar size={20} /> HISTORIAL
                     </Link>
                     <Link to="/profile" className={location.pathname === '/profile' ? styles.menuItemActive : styles.menuItem} onClick={() => setMenuOpen(false)}>
                         <User size={20} /> PERFIL
