@@ -8,7 +8,7 @@ export default defineConfig(({ command }) => {
   const isVercel = !!process.env.VERCEL;
 
   return {
-    base: isVercel || command === 'serve' ? '/' : '/Charly-webSilver/',
+    base: '/',
     plugins: [
       tailwindcss(),
       react(),
