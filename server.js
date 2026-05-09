@@ -7,7 +7,9 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 app.use(express.static(join(__dirname, 'dist')));
-app.get('*', (req, res) => {
+
+// Express 5: usar /{*path} en lugar de *
+app.get('/{*path}', (req, res) => {
     res.sendFile(join(__dirname, 'dist', 'index.html'));
 });
 
