@@ -3,6 +3,6 @@
         "command": "npm run build"
     },
     "deploy": {
-        "startCommand": "node server.js"
+        "startCommand": "npx serve dist -l 8080 -s"
     }
 }
