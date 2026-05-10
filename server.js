@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import pkg from 'pg';
@@ -11,9 +12,11 @@ import crypto from 'crypto';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
+
 const { Pool } = pkg;
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
+app.set('trust proxy', 1); // ← aquí
 const PORT = process.env.PORT || 8080;
 
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -35,7 +38,13 @@ const transporter = nodemailer.createTransport({
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
+  connectionTimeout: 10000, // 10 segundos
+  greetingTimeout: 10000,
+  socketTimeout: 10000,
 });
+
+
+
 
 // ==========================================
 // MIDDLEWARE DE SEGURIDAD
@@ -578,7 +587,7 @@ app.post('/api/forgot-password', async (req, res) => {
     console.log(`[AUTH] Recuperación solicitada: ${email}`);
     res.json({ message: 'Si el email existe, recibirás un enlace de recuperación.' });
   } catch (err) {
-    console.error('Error en forgot-password:', err.message);
+    console.error(`[ERROR] forgot-password (${email}):`, err.message);
     res.status(500).json({ error: safeError(err) });
   }
 });
