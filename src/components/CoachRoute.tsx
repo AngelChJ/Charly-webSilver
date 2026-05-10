@@ -26,7 +26,8 @@ export default function CoachRoute({ children }: { children: JSX.Element }) {
 
     if (!user) return <Navigate to="/login" replace />;
 
-    const role = user.app_metadata?.role;
+    // Ahora el rol viene directamente en user.role, no en app_metadata
+    const role = (user as any).role;
     if (role !== 'coach' && role !== 'admin') {
         return <Navigate to="/dashboard" replace />;
     }

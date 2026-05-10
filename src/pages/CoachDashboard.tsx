@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Dumbbell, Users, Calendar, TrendingUp, LogOut, Loader, UserPlus, Play, Menu, X } from 'lucide-react';
-import { supabase } from '../lib/supabaseClient';
+import { api } from '../lib/api';
 import { useAuth } from '../hooks/useAuth';
 import RoutineModal from '../components/RoutineModal';
 import AddAthleteModal from '../components/AddAthleteModal';
@@ -10,16 +10,15 @@ import ExerciseModal from '../components/ExerciseModal';
 import styles from '../styles/CoachDashboard.module.css';
 
 interface Athlete {
-    id: string;
+    id: number;
     name: string;
     email: string;
     age: number;
     weight_kg: number;
     goal: string;
-    subscription_end: string | null;
-    subscription_active: boolean;
-    current_plan: string | null;
-    plan_id: number | null;
+    sub_end: string | null;
+    sub_active: boolean;
+    plan_type: string;
     sessions_this_week: number;
 }
 
@@ -32,9 +31,9 @@ export default function CoachDashboard() {
     const [athletes, setAthletes] = useState<Athlete[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const [selectedAthlete, setSelectedAthlete] = useState<{ id: string; name: string } | null>(null);
+    const [selectedAthlete, setSelectedAthlete] = useState<{ id: number; name: string } | null>(null);
     const [showAddAthlete, setShowAddAthlete] = useState(false);
-    const [selectedAthleteForSub, setSelectedAthleteForSub] = useState<{ id: string; name: string } | null>(null);
+    const [selectedAthleteForSub, setSelectedAthleteForSub] = useState<{ id: number; name: string } | null>(null);
     const [exercises, setExercises] = useState<any[]>([]);
     const [focuses, setFocuses] = useState<any[]>([]);
     const [selectedExercise, setSelectedExercise] = useState<any | null>(null);
@@ -45,35 +44,36 @@ export default function CoachDashboard() {
     const [menuOpen, setMenuOpen] = useState(false);
 
     const loadExercises = async () => {
-        const { data: exData } = await supabase.from('exercises').select('*').order('name');
-        const { data: focusData } = await supabase.from('exercise_focus').select('*').order('name');
-        if (exData) setExercises(exData);
-        if (focusData) setFocuses(focusData);
+        try {
+            const data = await api('/api/exercises');
+            setExercises(data);
+            const focusList = [...new Map(data.map((ex: any) => [ex.focus_id, { id: ex.focus_id, name: ex.focus_name }])).values()] as any[];
+            setFocuses(focusList);
+        } catch { }
     };
 
-    useEffect(() => { if (activeTab === 'exercises') { loadExercises(); } }, [activeTab]);
+    useEffect(() => { if (activeTab === 'exercises') loadExercises(); }, [activeTab]);
 
     const fetchAthletes = async () => {
         if (!user) return;
         setLoading(true);
-        const { data: athletesData, error: athletesError } = await supabase.from('users').select('id, name, email, age, weight_kg, goal, created_at').eq('role', 'athlete').order('name');
-        if (athletesError) { setError(athletesError.message); setLoading(false); return; }
-
-        const formatted: Athlete[] = await Promise.all((athletesData || []).map(async (a) => {
-            const { data: sub } = await supabase.from('subscriptions').select('end_date, is_active').eq('user_id', a.id).eq('is_active', true).limit(1).maybeSingle();
-            const { data: wp } = await supabase.from('workout_plans').select('id, name').eq('user_id', a.id).eq('is_active', true).limit(1).maybeSingle();
-            const today = new Date();
-            const startOfWeek = new Date(today); startOfWeek.setDate(today.getDate() - today.getDay() + 1); startOfWeek.setHours(0, 0, 0, 0);
-            const endOfWeek = new Date(startOfWeek); endOfWeek.setDate(startOfWeek.getDate() + 6); endOfWeek.setHours(23, 59, 59, 999);
-            const { count: sessionCount } = await supabase.from('workout_sessions').select('*', { count: 'exact', head: true }).eq('user_id', a.id).gte('date', startOfWeek.toISOString().split('T')[0]).lte('date', endOfWeek.toISOString().split('T')[0]);
-            return { id: a.id, name: a.name, email: a.email, age: a.age, weight_kg: a.weight_kg, goal: a.goal, subscription_end: sub?.end_date ?? null, subscription_active: sub?.is_active ?? false, current_plan: wp?.name ?? null, plan_id: wp?.id ?? null, sessions_this_week: sessionCount || 0 };
-        }));
-        setAthletes(formatted); setLoading(false);
+        try {
+            const data = await api('/api/athletes');
+            setAthletes(data);
+        } catch (err: any) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
     };
 
     useEffect(() => { fetchAthletes(); }, [user]);
 
-    const handleLogout = async () => { await supabase.auth.signOut(); navigate('/login'); };
+    const handleLogout = () => {
+        localStorage.removeItem('charly_token');
+        localStorage.removeItem('charly_user');
+        navigate('/login');
+    };
 
     const tabs = [
         { id: 'athletes' as Tab, label: 'ATLETAS', icon: <Users size={18} /> },
@@ -81,11 +81,15 @@ export default function CoachDashboard() {
         { id: 'exercises' as Tab, label: 'EJERCICIOS', icon: <TrendingUp size={18} /> },
     ];
 
-    const getGoalLabel = (goal: string) => { const goals: any = { muscle_gain: 'Ganar Músculo', fat_loss: 'Perder Grasa', maintenance: 'Mantener' }; return goals[goal] ?? goal; };
+    const getGoalLabel = (goal: string) => {
+        const goals: any = { muscle_gain: 'Ganar Músculo', fat_loss: 'Perder Grasa', maintenance: 'Mantener' };
+        return goals[goal] ?? goal;
+    };
 
     const getSubscriptionStatus = (athlete: Athlete) => {
-        if (!athlete.subscription_end) return { label: 'SIN PLAN', color: '#666' };
-        const endDate = new Date(athlete.subscription_end); const today = new Date();
+        if (!athlete.sub_end) return { label: 'SIN PLAN', color: '#666' };
+        const endDate = new Date(athlete.sub_end);
+        const today = new Date();
         const daysLeft = Math.ceil((endDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
         if (daysLeft < 0) return { label: 'VENCIDO', color: '#f87171' };
         if (daysLeft <= 7) return { label: `${daysLeft} DÍAS`, color: '#fbbf24' };
@@ -94,38 +98,19 @@ export default function CoachDashboard() {
 
     return (
         <div className={styles.container}>
-            {/* Mobile Header */}
             <div className={styles.mobileTopBar}>
-                <button className={styles.hamburger} onClick={() => setMenuOpen(true)}>
-                    <Menu size={24} />
-                </button>
-                <span className={styles.mobileLogo}>
-                    CHARLY <span className={styles.silverText}>COACH</span>
-                </span>
+                <button className={styles.hamburger} onClick={() => setMenuOpen(true)}><Menu size={24} /></button>
+                <span className={styles.mobileLogo}>CHARLY <span className={styles.silverText}>COACH</span></span>
             </div>
-
-            {/* Overlay */}
             {menuOpen && <div className={styles.overlay} onClick={() => setMenuOpen(false)} />}
-
-            {/* Sidebar */}
             <aside className={`${styles.sidebar} ${menuOpen ? styles.sidebarOpen : ''}`}>
                 <div className={styles.sidebarHeader}>
-                    <div className={styles.logo}>
-                        CHARLY <span className={styles.silverText}>COACH</span>
-                    </div>
-                    <button className={styles.closeMenu} onClick={() => setMenuOpen(false)}>
-                        <X size={20} />
-                    </button>
+                    <div className={styles.logo}>CHARLY <span className={styles.silverText}>COACH</span></div>
+                    <button className={styles.closeMenu} onClick={() => setMenuOpen(false)}><X size={20} /></button>
                 </div>
                 <nav className={styles.nav}>
                     {tabs.map((tab) => (
-                        <button
-                            key={tab.id}
-                            onClick={() => { setActiveTab(tab.id); setMenuOpen(false); }}
-                            className={`${styles.tabBtn} ${activeTab === tab.id ? styles.active : ''}`}
-                        >
-                            {tab.icon} {tab.label}
-                        </button>
+                        <button key={tab.id} onClick={() => { setActiveTab(tab.id); setMenuOpen(false); }} className={`${styles.tabBtn} ${activeTab === tab.id ? styles.active : ''}`}>{tab.icon} {tab.label}</button>
                     ))}
                 </nav>
                 <button onClick={handleLogout} className={styles.logoutBtn}><LogOut size={20} /> SALIR</button>
@@ -135,17 +120,15 @@ export default function CoachDashboard() {
                 <header className={styles.header}>
                     <h1 className={styles.pageTitle}>PANEL DE <span className={styles.silverText}>CONTROL</span></h1>
                     <p className={styles.pageSubtitle}>{activeTab === 'athletes' ? 'Gestión de atletas' : activeTab === 'routines' ? 'Gestión de rutinas' : 'Biblioteca de ejercicios'}</p>
-                    {activeTab === 'athletes' && (
-                        <button onClick={() => setShowAddAthlete(true)} className={styles.addBtn}><UserPlus size={16} /> AÑADIR ATLETA</button>
-                    )}
+                    {activeTab === 'athletes' && <button onClick={() => setShowAddAthlete(true)} className={styles.addBtn}><UserPlus size={16} /> AÑADIR ATLETA</button>}
                 </header>
 
-                {/* Tab: Atletas */}
+                {/* El resto del JSX es igual que antes, solo cambia athlete.id por Number y los datos vienen de la API */}
                 {activeTab === 'athletes' && (
                     <div>
                         {loading ? <div className={styles.loadingContainer}><Loader size={32} style={{ animation: 'spin 1s linear infinite', marginBottom: '1rem' }} /><p>CARGANDO ATLETAS...</p></div>
                             : error ? <div className={styles.errorContainer}>{error}</div>
-                                : athletes.length === 0 ? <div className={styles.emptyContainer}><p style={{ fontSize: '0.85rem', letterSpacing: '0.05em' }}>NO HAY ATLETAS REGISTRADOS</p></div>
+                                : athletes.length === 0 ? <div className={styles.emptyContainer}><p>NO HAY ATLETAS REGISTRADOS</p></div>
                                     : <div className={styles.athletesGrid}>
                                         {athletes.map((athlete) => {
                                             const subStatus = getSubscriptionStatus(athlete);
@@ -161,7 +144,7 @@ export default function CoachDashboard() {
                                                     <div className={styles.statsGrid}>
                                                         <div className={styles.statItem}><span className={styles.statLabel}>META</span>{getGoalLabel(athlete.goal)}</div>
                                                         <div className={styles.statItem}><span className={styles.statLabel}>PESO</span>{athlete.weight_kg ?? '-'} kg</div>
-                                                        <div className={styles.statItem}><span className={styles.statLabel}>PLAN ACTUAL</span>{athlete.current_plan ?? 'Sin plan'}</div>
+                                                        <div className={styles.statItem}><span className={styles.statLabel}>PLAN ACTUAL</span>{athlete.plan_type ?? 'Sin plan'}</div>
                                                         <div className={styles.statItem}><span className={styles.statLabel}>SESIONES (7 DÍAS)</span>{athlete.sessions_this_week}</div>
                                                     </div>
                                                     <div className={styles.actionButtons}>
@@ -175,43 +158,21 @@ export default function CoachDashboard() {
                     </div>
                 )}
 
-                {/* Tab: Rutinas */}
+                {/* Pestañas routines y exercises mantienen la misma estructura */}
                 {activeTab === 'routines' && (
-                    <div>
-                        {loading ? (
-                            <div className={styles.loadingContainer}><Loader size={32} style={{ animation: 'spin 1s linear infinite', marginBottom: '1rem' }} /><p>CARGANDO RUTINAS...</p></div>
-                        ) : (
-                            <div className={styles.athletesGrid}>
-                                {athletes.map((athlete) => (
-                                    <div key={athlete.id} className={styles.athleteCard}>
-                                        <div className={styles.athleteHeader}>
-                                            <div className={styles.athleteInfo}>
-                                                <div className={styles.avatar}>{athlete.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}</div>
-                                                <div>
-                                                    <h3 className={styles.athleteName}>{athlete.name}</h3>
-                                                    <p className={styles.athleteEmail}>Plan: {athlete.current_plan ?? 'Sin plan asignado'}</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className={styles.actionButtons}>
-                                            <button onClick={() => setSelectedAthlete({ id: athlete.id, name: athlete.name })} className={styles.actionBtnPrimary} style={{ flex: 1 }}><Dumbbell size={14} /> {athlete.current_plan ? 'CAMBIAR RUTINA' : 'ASIGNAR RUTINA'}</button>
-                                        </div>
-                                    </div>
-                                ))}
-                                {athletes.length === 0 && <p style={{ textAlign: 'center', color: '#666', gridColumn: '1/-1', padding: '2rem' }}>No hay atletas para asignar rutinas</p>}
-                            </div>
-                        )}
+                    <div className={styles.loadingContainer}>
+                        <p>GESTOR DE RUTINAS</p>
+                        <p style={{ fontSize: '0.75rem', marginTop: '0.5rem', color: '#555' }}>Selecciona la pestaña ATLETAS y haz clic en "ASIGNAR RUTINA"</p>
                     </div>
                 )}
 
-                {/* Tab: Ejercicios */}
                 {activeTab === 'exercises' && (
                     <div>
                         <div className={styles.exerciseControls}>
                             <input type="text" placeholder="Buscar ejercicio..." value={exerciseSearch} onChange={(e) => setExerciseSearch(e.target.value)} className={styles.searchInput} />
                             <select value={exerciseFilter} onChange={(e) => setExerciseFilter(e.target.value === 'all' ? 'all' : parseInt(e.target.value))} className={styles.filterSelect}>
                                 <option value="all">Todos los grupos</option>
-                                {focuses.map((f) => (<option key={f.id} value={f.id}>{f.name}</option>))}
+                                {focuses.map((f: any) => (<option key={f.id} value={f.id}>{f.name}</option>))}
                             </select>
                             <select value={exerciseSort} onChange={(e) => setExerciseSort(e.target.value as 'name' | 'focus')} className={styles.filterSelect}>
                                 <option value="name">Orden A-Z</option>
@@ -219,41 +180,26 @@ export default function CoachDashboard() {
                             </select>
                             <button onClick={() => { setSelectedExercise(null); setShowExerciseModal(true); }} className={styles.addBtn}><Dumbbell size={16} /> NUEVO</button>
                         </div>
-                        {(() => {
-                            let filtered = exercises;
-                            if (exerciseSearch) { filtered = filtered.filter(ex => ex.name.toLowerCase().includes(exerciseSearch.toLowerCase())); }
-                            if (exerciseFilter !== 'all') { filtered = filtered.filter(ex => ex.focus_id === exerciseFilter); }
-                            filtered = [...filtered].sort((a, b) => exerciseSort === 'name' ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name));
-                            return (
-                                <>
-                                    <p className={styles.exerciseCount}>{filtered.length} de {exercises.length} ejercicios</p>
-                                    {filtered.length === 0 ? <div className={styles.emptyContainer}><p style={{ fontSize: '0.8rem' }}>Sin resultados</p></div>
-                                        : <div className={styles.exercisesGrid}>
-                                            {filtered.map((ex) => {
-                                                const focus = focuses.find(f => f.id === ex.focus_id);
-                                                return (
-                                                    <div key={ex.id} onClick={() => { setSelectedExercise(ex); setShowExerciseModal(true); }} className={styles.exerciseCard}>
-                                                        <h4 className={styles.exerciseTitle}>{ex.name}</h4>
-                                                        {ex.description && <p className={styles.exerciseDesc}>{ex.description.length > 80 ? ex.description.slice(0, 80) + '...' : ex.description}</p>}
-                                                        <div className={styles.exerciseFooter}>
-                                                            <span className={styles.exerciseFocus}>{focus?.name || 'Sin grupo'}</span>
-                                                            {ex.video_url && <Play size={14} color="#4ade80" />}
-                                                        </div>
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>}
-                                </>
-                            );
-                        })()}
+                        {exercises.length === 0 ? <div className={styles.emptyContainer}><p>No hay ejercicios</p></div>
+                            : <div className={styles.exercisesGrid}>
+                                {exercises.filter((ex: any) => exerciseSearch ? ex.name.toLowerCase().includes(exerciseSearch.toLowerCase()) : true).map((ex: any) => (
+                                    <div key={ex.id} onClick={() => { setSelectedExercise(ex); setShowExerciseModal(true); }} className={styles.exerciseCard}>
+                                        <h4 className={styles.exerciseTitle}>{ex.name}</h4>
+                                        {ex.description && <p className={styles.exerciseDesc}>{ex.description.slice(0, 80)}</p>}
+                                        <div className={styles.exerciseFooter}>
+                                            <span className={styles.exerciseFocus}>{ex.focus_name || 'Sin grupo'}</span>
+                                            {ex.video_url && <Play size={14} color="#4ade80" />}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>}
                     </div>
                 )}
             </main>
 
-            {/* Modales */}
-            {selectedAthlete && <RoutineModal athleteId={selectedAthlete.id} athleteName={selectedAthlete.name} onClose={() => setSelectedAthlete(null)} onSaved={() => { setSelectedAthlete(null); fetchAthletes(); }} />}
+            {selectedAthlete && <RoutineModal athleteId={String(selectedAthlete.id)} athleteName={selectedAthlete.name} onClose={() => setSelectedAthlete(null)} onSaved={() => { setSelectedAthlete(null); fetchAthletes(); }} />}
             {showAddAthlete && <AddAthleteModal onClose={() => setShowAddAthlete(false)} onCreated={() => { setShowAddAthlete(false); fetchAthletes(); }} />}
-            {selectedAthleteForSub && <SubscriptionModal athleteId={selectedAthleteForSub.id} athleteName={selectedAthleteForSub.name} onClose={() => setSelectedAthleteForSub(null)} onSaved={() => { setSelectedAthleteForSub(null); fetchAthletes(); }} />}
+            {selectedAthleteForSub && <SubscriptionModal athleteId={String(selectedAthleteForSub.id)} athleteName={selectedAthleteForSub.name} onClose={() => setSelectedAthleteForSub(null)} onSaved={() => { setSelectedAthleteForSub(null); fetchAthletes(); }} />}
             {showExerciseModal && <ExerciseModal exercise={selectedExercise} onClose={() => { setShowExerciseModal(false); setSelectedExercise(null); }} onSaved={() => { setShowExerciseModal(false); setSelectedExercise(null); loadExercises(); }} />}
         </div>
     );

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { X, User, Mail, Lock, Loader, Check, Crown } from 'lucide-react';
-import { supabase } from '../lib/supabaseClient';
+import { api } from '../lib/api';
 import styles from '../styles/AddAthleteModal.module.css';
 
 interface Props {
@@ -36,17 +36,16 @@ export default function AddAthleteModal({ onClose, onCreated }: Props) {
         setLoading(true);
 
         try {
-            // Llamar a la función RPC (ejecuta con permisos elevados en Supabase)
-            const { data, error: rpcError } = await supabase.rpc('create_athlete', {
-                p_email: email,
-                p_password: password,
-                p_name: name,
-                p_plan_months: planMonths,
-                p_plan_type: selectedPlan,
+            await api('/api/athletes', {
+                method: 'POST',
+                body: JSON.stringify({
+                    email,
+                    password,
+                    name,
+                    planMonths,
+                    planType: selectedPlan,
+                }),
             });
-
-            if (rpcError) throw new Error(rpcError.message);
-            if (data?.error) throw new Error(data.error);
 
             setSuccess(true);
             setTimeout(() => { onCreated(); onClose(); }, 2000);

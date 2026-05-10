@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { User, Lock, ArrowRight, ChevronLeft } from 'lucide-react';
 import styles from '../styles/Login.module.css';
-import { supabase } from '../lib/supabaseClient';
+import { api } from '../lib/api';
 
 export default function Login() {
     const [email, setEmail] = useState('');
@@ -28,25 +28,24 @@ export default function Login() {
         setIsLoading(true);
 
         try {
-            const { data, error: loginError } = await supabase.auth.signInWithPassword({
-                email,
-                password,
+            const data = await api('/api/login', {
+                method: 'POST',
+                body: JSON.stringify({ email, password }),
             });
-
-            if (loginError) throw loginError;
 
             console.log('✅ Usuario autenticado:', data.user);
 
-            // Redirigir según rol
-            const role = data.user?.app_metadata?.role;
-            if (role === 'coach' || role === 'admin') {
+            localStorage.setItem('charly_token', data.token);
+            localStorage.setItem('charly_user', JSON.stringify(data.user));
+
+            if (data.user.role === 'coach' || data.user.role === 'admin') {
                 navigate('/coach');
             } else {
                 navigate('/dashboard');
             }
         } catch (err: any) {
             console.error('❌ Error de login:', err.message);
-            setError('Credenciales incorrectas. Intenta de nuevo.');
+            setError(err.message || 'Credenciales incorrectas');
         } finally {
             setIsLoading(false);
         }
