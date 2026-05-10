@@ -73,7 +73,11 @@ app.use('/api', globalLimiter);
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 10,
-  message: { error: 'Demasiados intentos de inicio de sesión. Intenta en 15 minutos.' },
+  skipSuccessfulRequests: true,
+  handler: (req, res) => {
+    console.warn(`[SECURITY] Rate limit alcanzado en /login - IP: ${req.ip}`);
+    res.status(429).json({ error: 'Demasiados intentos. Intenta en 15 minutos.' });
+  },
   standardHeaders: true,
   legacyHeaders: false,
 });
@@ -95,8 +99,11 @@ pool.query('SELECT NOW()')
   .catch(err => console.error('❌ Error de conexión:', err.message));
 
 // ==========================================
-// MIDDLEWARE DE AUTENTICACIÓN
+// MIDDLEWARE DE AUTENTICACIÓN (con caché)
 // ==========================================
+const userRoleCache = new Map();
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutos
+
 async function auth(req, res, next) {
   const token = req.headers.authorization?.replace('Bearer ', '');
   if (!token) {
@@ -105,19 +112,39 @@ async function auth(req, res, next) {
   }
   try {
     const payload = jwt.verify(token, JWT_SECRET);
-    // Verificar que el usuario aún existe y obtener rol actualizado
+
+    // Verificar caché
+    const cached = userRoleCache.get(payload.id);
+    if (cached && (Date.now() - cached.ts) < CACHE_TTL_MS) {
+      req.user = { id: payload.id, email: payload.email, role: cached.role };
+      return next();
+    }
+
+    // Consultar BD
     const { rows } = await pool.query('SELECT id, role FROM users WHERE id = $1', [payload.id]);
     if (rows.length === 0) {
+      userRoleCache.delete(payload.id);
       console.warn(`[SECURITY] Token de usuario eliminado - ID: ${payload.id}`);
       return res.status(401).json({ error: 'Usuario no encontrado' });
     }
+
+    // Guardar en caché
+    userRoleCache.set(payload.id, { role: rows[0].role, ts: Date.now() });
     req.user = { id: payload.id, email: payload.email, role: rows[0].role };
     next();
   } catch (err) {
-    console.warn(`[SECURITY] Token inválido - IP: ${req.ip} - ${new Date().toISOString()}`);
+    console.warn(`[SECURITY] Token inválido - IP: ${req.ip}`);
     res.status(401).json({ error: 'Token inválido' });
   }
 }
+
+// Limpiar caché cada hora
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, val] of userRoleCache.entries()) {
+    if (now - val.ts > CACHE_TTL_MS) userRoleCache.delete(key);
+  }
+}, 60 * 60 * 1000);
 
 function coachOnly(req, res, next) {
   if (req.user.role !== 'coach' && req.user.role !== 'admin') {
@@ -157,7 +184,7 @@ app.post('/api/login', loginLimiter, async (req, res) => {
 
     const { rows } = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
     if (rows.length === 0) {
-      console.warn(`[SECURITY] Login fallido (usuario no existe): ${email} - IP: ${req.ip}`);
+      console.warn(`[SECURITY] Login fallido (no existe): ${email} - IP: ${req.ip}`);
       return res.status(401).json({ error: 'Credenciales incorrectas' });
     }
 
@@ -184,14 +211,14 @@ app.post('/api/login', loginLimiter, async (req, res) => {
   }
 });
 
-// Logout (registrar en logs)
+// Logout
 app.post('/api/logout', auth, (req, res) => {
   console.log(`[AUTH] Logout: ${req.user.email}`);
   res.json({ success: true });
 });
 
-// Registrar atleta
-app.post('/api/athletes', auth, coachOnly, registerLimiter, async (req, res) => {
+// Registrar atleta (con registerLimiter ANTES de auth)
+app.post('/api/athletes', registerLimiter, auth, coachOnly, async (req, res) => {
   try {
     const { email, password, name, planMonths, planType } = req.body;
 
@@ -225,72 +252,107 @@ app.post('/api/athletes', auth, coachOnly, registerLimiter, async (req, res) => 
 
 // Listar atletas
 app.get('/api/athletes', auth, coachOnly, async (req, res) => {
-  const { rows } = await pool.query(`
-    SELECT u.*, s.end_date as sub_end, s.is_active as sub_active
-    FROM users u
-    LEFT JOIN subscriptions s ON u.id = s.user_id AND s.is_active = true
-    WHERE u.role = 'athlete'
-    ORDER BY u.name
-  `);
-  res.json(rows);
+  try {
+    const { rows } = await pool.query(`
+      SELECT u.*, s.end_date as sub_end, s.is_active as sub_active
+      FROM users u
+      LEFT JOIN subscriptions s ON u.id = s.user_id AND s.is_active = true
+      WHERE u.role = 'athlete'
+      ORDER BY u.name
+    `);
+    res.json(rows);
+  } catch (err) {
+    console.error('Error en GET /api/athletes:', err.message);
+    res.status(500).json({ error: safeError(err) });
+  }
 });
 
 // Perfil
 app.get('/api/profile', auth, async (req, res) => {
-  const { rows } = await pool.query(
-    'SELECT id, name, email, role, age, weight_kg, height_cm, gender, goal, plan_type FROM users WHERE id = $1',
-    [req.user.id]
-  );
-  if (rows.length === 0) return res.status(404).json({ error: 'Usuario no encontrado' });
-  res.json(rows[0]);
+  try {
+    const { rows } = await pool.query(
+      'SELECT id, name, email, role, age, weight_kg, height_cm, gender, goal, plan_type FROM users WHERE id = $1',
+      [req.user.id]
+    );
+    if (rows.length === 0) return res.status(404).json({ error: 'Usuario no encontrado' });
+    res.json(rows[0]);
+  } catch (err) {
+    console.error('Error en GET /api/profile:', err.message);
+    res.status(500).json({ error: safeError(err) });
+  }
 });
 
 app.put('/api/profile', auth, async (req, res) => {
-  const { weight_kg, goal, age, height_cm } = req.body;
-  await pool.query(
-    'UPDATE users SET weight_kg = COALESCE($1, weight_kg), goal = COALESCE($2, goal), age = COALESCE($3, age), height_cm = COALESCE($4, height_cm) WHERE id = $5',
-    [weight_kg, goal, age, height_cm, req.user.id]
-  );
-  res.json({ success: true });
+  try {
+    const { weight_kg, goal, age, height_cm } = req.body;
+    await pool.query(
+      'UPDATE users SET weight_kg = COALESCE($1, weight_kg), goal = COALESCE($2, goal), age = COALESCE($3, age), height_cm = COALESCE($4, height_cm) WHERE id = $5',
+      [weight_kg, goal, age, height_cm, req.user.id]
+    );
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Error en PUT /api/profile:', err.message);
+    res.status(500).json({ error: safeError(err) });
+  }
 });
 
 // Ejercicios
 app.get('/api/exercises', auth, async (req, res) => {
-  const { rows } = await pool.query(`
-    SELECT e.*, ef.name as focus_name FROM exercises e
-    LEFT JOIN exercise_focus ef ON e.focus_id = ef.id
-    ORDER BY e.name
-  `);
-  res.json(rows);
+  try {
+    const { rows } = await pool.query(`
+      SELECT e.*, ef.name as focus_name FROM exercises e
+      LEFT JOIN exercise_focus ef ON e.focus_id = ef.id
+      ORDER BY e.name
+    `);
+    res.json(rows);
+  } catch (err) {
+    console.error('Error en GET /api/exercises:', err.message);
+    res.status(500).json({ error: safeError(err) });
+  }
 });
 
 app.post('/api/exercises', auth, coachOnly, async (req, res) => {
-  const { name, description, focus_id, video_url } = req.body;
-  if (!validateString(name, 200)) return res.status(400).json({ error: 'Nombre inválido' });
-  if (description && description.length > 500) return res.status(400).json({ error: 'Descripción demasiado larga' });
-  if (video_url && !/^https?:\/\/.+/.test(video_url)) return res.status(400).json({ error: 'URL de video inválida' });
+  try {
+    const { name, description, focus_id, video_url } = req.body;
+    if (!validateString(name, 200)) return res.status(400).json({ error: 'Nombre inválido' });
+    if (description && description.length > 500) return res.status(400).json({ error: 'Descripción demasiado larga' });
+    if (video_url && !/^https?:\/\/.+/.test(video_url)) return res.status(400).json({ error: 'URL de video inválida' });
 
-  const { rows } = await pool.query(
-    'INSERT INTO exercises (name, description, focus_id, video_url) VALUES ($1, $2, $3, $4) RETURNING id',
-    [name.trim(), description?.trim(), focus_id, video_url]
-  );
-  res.json({ success: true, id: rows[0].id });
+    const { rows } = await pool.query(
+      'INSERT INTO exercises (name, description, focus_id, video_url) VALUES ($1, $2, $3, $4) RETURNING id',
+      [name.trim(), description?.trim(), focus_id, video_url]
+    );
+    res.json({ success: true, id: rows[0].id });
+  } catch (err) {
+    console.error('Error en POST /api/exercises:', err.message);
+    res.status(500).json({ error: safeError(err) });
+  }
 });
 
 app.put('/api/exercises/:id', auth, coachOnly, async (req, res) => {
-  const { name, description, focus_id, video_url } = req.body;
-  if (!validateString(name, 200)) return res.status(400).json({ error: 'Nombre inválido' });
+  try {
+    const { name, description, focus_id, video_url } = req.body;
+    if (!validateString(name, 200)) return res.status(400).json({ error: 'Nombre inválido' });
 
-  await pool.query(
-    'UPDATE exercises SET name = $1, description = $2, focus_id = $3, video_url = $4 WHERE id = $5',
-    [name.trim(), description?.trim(), focus_id, video_url, req.params.id]
-  );
-  res.json({ success: true });
+    await pool.query(
+      'UPDATE exercises SET name = $1, description = $2, focus_id = $3, video_url = $4 WHERE id = $5',
+      [name.trim(), description?.trim(), focus_id, video_url, req.params.id]
+    );
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Error en PUT /api/exercises:', err.message);
+    res.status(500).json({ error: safeError(err) });
+  }
 });
 
 app.delete('/api/exercises/:id', auth, coachOnly, async (req, res) => {
-  await pool.query('DELETE FROM exercises WHERE id = $1', [req.params.id]);
-  res.json({ success: true });
+  try {
+    await pool.query('DELETE FROM exercises WHERE id = $1', [req.params.id]);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Error en DELETE /api/exercises:', err.message);
+    res.status(500).json({ error: safeError(err) });
+  }
 });
 
 // Rutinas
@@ -321,6 +383,7 @@ app.get('/api/workout', auth, async (req, res) => {
 
     res.json({ ...plans[0], days: daysWithExercises });
   } catch (err) {
+    console.error('Error en GET /api/workout:', err.message);
     res.status(500).json({ error: safeError(err) });
   }
 });
@@ -354,6 +417,7 @@ app.post('/api/workout', auth, coachOnly, async (req, res) => {
 
     res.json({ success: true, plan_id: planId });
   } catch (err) {
+    console.error('Error en POST /api/workout:', err.message);
     res.status(500).json({ error: safeError(err) });
   }
 });
@@ -383,43 +447,59 @@ app.get('/api/workout/:userId', auth, coachOnly, async (req, res) => {
 
     res.json({ ...plans[0], days: daysWithExercises });
   } catch (err) {
+    console.error('Error en GET /api/workout/:userId:', err.message);
     res.status(500).json({ error: safeError(err) });
   }
 });
 
 // Sesiones
 app.post('/api/sessions', auth, async (req, res) => {
-  const { routine_name, exercises, total_volume, date } = req.body;
-  if (!validateString(routine_name, 200)) return res.status(400).json({ error: 'Nombre de rutina inválido' });
+  try {
+    const { routine_name, exercises, total_volume, date } = req.body;
+    if (!validateString(routine_name, 200)) return res.status(400).json({ error: 'Nombre de rutina inválido' });
 
-  await pool.query(
-    'INSERT INTO workout_sessions (user_id, routine_name, exercises, total_volume, date) VALUES ($1, $2, $3, $4, $5)',
-    [req.user.id, routine_name.trim(), JSON.stringify(exercises), total_volume, date || new Date().toISOString().split('T')[0]]
-  );
-  res.json({ success: true });
+    await pool.query(
+      'INSERT INTO workout_sessions (user_id, routine_name, exercises, total_volume, date) VALUES ($1, $2, $3, $4, $5)',
+      [req.user.id, routine_name.trim(), JSON.stringify(exercises), total_volume, date || new Date().toISOString().split('T')[0]]
+    );
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Error en POST /api/sessions:', err.message);
+    res.status(500).json({ error: safeError(err) });
+  }
 });
 
 app.get('/api/sessions', auth, async (req, res) => {
-  const { rows } = await pool.query(
-    'SELECT * FROM workout_sessions WHERE user_id = $1 ORDER BY date DESC',
-    [req.user.id]
-  );
-  res.json(rows);
+  try {
+    const { rows } = await pool.query(
+      'SELECT * FROM workout_sessions WHERE user_id = $1 ORDER BY date DESC',
+      [req.user.id]
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error('Error en GET /api/sessions:', err.message);
+    res.status(500).json({ error: safeError(err) });
+  }
 });
 
 // Suscripciones
 app.post('/api/subscriptions', auth, coachOnly, async (req, res) => {
-  const { user_id, end_date, plan_type } = req.body;
-  if (!end_date) return res.status(400).json({ error: 'Fecha de vencimiento requerida' });
+  try {
+    const { user_id, end_date, plan_type } = req.body;
+    if (!end_date) return res.status(400).json({ error: 'Fecha de vencimiento requerida' });
 
-  await pool.query('UPDATE subscriptions SET is_active = false WHERE user_id = $1 AND is_active = true', [user_id]);
-  await pool.query('INSERT INTO subscriptions (user_id, end_date) VALUES ($1, $2)', [user_id, end_date]);
-  if (plan_type) {
-    await pool.query('UPDATE users SET plan_type = $1 WHERE id = $2', [plan_type, user_id]);
+    await pool.query('UPDATE subscriptions SET is_active = false WHERE user_id = $1 AND is_active = true', [user_id]);
+    await pool.query('INSERT INTO subscriptions (user_id, end_date) VALUES ($1, $2)', [user_id, end_date]);
+    if (plan_type) {
+      await pool.query('UPDATE users SET plan_type = $1 WHERE id = $2', [plan_type, user_id]);
+    }
+
+    console.log(`[AUDIT] Suscripción actualizada por coach ${req.user.email}: user_id=${user_id}`);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Error en POST /api/subscriptions:', err.message);
+    res.status(500).json({ error: safeError(err) });
   }
-
-  console.log(`[AUDIT] Suscripción actualizada por coach ${req.user.email}: user_id=${user_id}`);
-  res.json({ success: true });
 });
 
 // ==========================================
@@ -457,7 +537,7 @@ cron.schedule('0 8 * * *', async () => {
 });
 
 console.log('⏰ Cron jobs iniciados');
-console.log('🛡️ Security middleware activo: Helmet, CORS, Rate Limiting');
+console.log('🛡️ Security middleware activo: Helmet, CORS, Rate Limiting, Auth Cache');
 
 // Servir frontend
 app.use(express.static(join(__dirname, 'dist')));

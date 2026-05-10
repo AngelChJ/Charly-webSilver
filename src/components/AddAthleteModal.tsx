@@ -31,8 +31,11 @@ export default function AddAthleteModal({ onClose, onCreated }: Props) {
 
         if (!name.trim()) { setError('El nombre es obligatorio.'); return; }
         if (!email.includes('@')) { setError('Ingresa un correo válido.'); return; }
-        if (password.length < 6) { setError('La contraseña debe tener al menos 6 caracteres.'); return; }
-
+        const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
+        if (!passwordRegex.test(password)) {
+            setError('La contraseña debe tener al menos 8 caracteres, una letra y un número.');
+            return;
+        }
         setLoading(true);
 
         try {
