@@ -36,41 +36,17 @@ export default function AddAthleteModal({ onClose, onCreated }: Props) {
         setLoading(true);
 
         try {
-            // Obtener token del coach autenticado
-            const { data: sessionData } = await supabase.auth.getSession();
-            const token = sessionData.session?.access_token;
+            // Llamar a la función RPC (ejecuta con permisos elevados en Supabase)
+            const { data, error: rpcError } = await supabase.rpc('create_athlete', {
+                p_email: email,
+                p_password: password,
+                p_name: name,
+                p_plan_months: planMonths,
+                p_plan_type: selectedPlan,
+            });
 
-            if (!token) {
-                setError('Sesión expirada. Inicia sesión de nuevo.');
-                setLoading(false);
-                return;
-            }
-
-            // Llamar a la Edge Function de Supabase (segura, sin exponer SERVICE_KEY)
-            const response = await fetch(
-                `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-athlete`,
-                {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`,
-                        'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-                    },
-                    body: JSON.stringify({
-                        email,
-                        password,
-                        name,
-                        planMonths,
-                        planType: selectedPlan,
-                    }),
-                }
-            );
-
-            const result = await response.json();
-
-            if (!response.ok) {
-                throw new Error(result.error || 'Error al crear usuario');
-            }
+            if (rpcError) throw new Error(rpcError.message);
+            if (data?.error) throw new Error(data.error);
 
             setSuccess(true);
             setTimeout(() => { onCreated(); onClose(); }, 2000);
