@@ -160,9 +160,33 @@ export default function CoachDashboard() {
 
                 {/* Pestañas routines y exercises mantienen la misma estructura */}
                 {activeTab === 'routines' && (
-                    <div className={styles.loadingContainer}>
-                        <p>GESTOR DE RUTINAS</p>
-                        <p style={{ fontSize: '0.75rem', marginTop: '0.5rem', color: '#555' }}>Selecciona la pestaña ATLETAS y haz clic en "ASIGNAR RUTINA"</p>
+                    <div>
+                        {loading ? (
+                            <div className={styles.loadingContainer}><Loader size={32} style={{ animation: 'spin 1s linear infinite', marginBottom: '1rem' }} /><p>CARGANDO RUTINAS...</p></div>
+                        ) : athletes.length === 0 ? (
+                            <div className={styles.emptyContainer}><p>NO HAY ATLETAS REGISTRADOS</p></div>
+                        ) : (
+                            <div className={styles.athletesGrid}>
+                                {athletes.map((athlete) => (
+                                    <div key={athlete.id} className={styles.athleteCard}>
+                                        <div className={styles.athleteHeader}>
+                                            <div className={styles.athleteInfo}>
+                                                <div className={styles.avatar}>{athlete.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}</div>
+                                                <div>
+                                                    <h3 className={styles.athleteName}>{athlete.name}</h3>
+                                                    <p className={styles.athleteEmail}>{athlete.plan_type ?? 'Sin plan'} · {athlete.sub_end ? new Date(athlete.sub_end).toLocaleDateString('es-MX') : 'Sin suscripción'}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className={styles.actionButtons}>
+                                            <button onClick={() => setSelectedAthlete({ id: athlete.id, name: athlete.name })} className={styles.actionBtnPrimary} style={{ flex: 1 }}>
+                                                <Dumbbell size={14} /> ASIGNAR / VER RUTINA
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 )}
 
