@@ -7,9 +7,9 @@ import cron from 'node-cron';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 // Email: Brevo HTTP API (no SMTP — funciona en Railway)
-import crypto from 'crypto';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import crypto from 'crypto';
 
 const { Pool } = pkg;
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -32,22 +32,32 @@ const pool = new Pool({
 
 // sendEmail: helper que usa Brevo HTTP API para enviar correos
 async function sendEmail({ to, subject, html }) {
-  const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+  const auth = Buffer.from(
+    `${process.env.MJ_APIKEY_PUBLIC}:${process.env.MJ_APIKEY_PRIVATE}`
+  ).toString('base64');
+
+  const res = await fetch('https://api.mailjet.com/v3.1/send', {
     method: 'POST',
     headers: {
-      'api-key': process.env.BREVO_API_KEY,
+      'Authorization': `Basic ${auth}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      sender: { name: 'Charly Coach', email: process.env.EMAIL_USER },
-      to: [{ email: to }],
-      subject,
-      htmlContent: html,
+      Messages: [{
+        From: {
+          Email: 'angelchope39@gmail.com',  // debe ser el email verificado en Mailjet
+          Name: 'Charly Coach',
+        },
+        To: [{ Email: to }],
+        Subject: subject,
+        HTMLPart: html,
+      }],
     }),
   });
+
   if (!res.ok) {
     const errBody = await res.text();
-    throw new Error(`Brevo error ${res.status}: ${errBody}`);
+    throw new Error(`Mailjet error ${res.status}: ${errBody}`);
   }
 }
 
