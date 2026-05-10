@@ -4,6 +4,8 @@ import pkg from 'pg';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import cron from 'node-cron';
+import rateLimit from 'express-rate-limit';
+import helmet from 'helmet';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
@@ -11,7 +13,15 @@ const { Pool } = pkg;
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
 const PORT = process.env.PORT || 8080;
-const JWT_SECRET = process.env.JWT_SECRET || 'charly-super-secreto-2026';
+
+// Validación crítica: JWT_SECRET DEBE existir
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  console.error('❌ FATAL: JWT_SECRET no está configurado. El servidor no puede iniciar.');
+  process.exit(1);
+}
+
+const isDev = process.env.NODE_ENV === 'development';
 
 // PostgreSQL pool
 const pool = new Pool({
@@ -19,71 +29,183 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false },
 });
 
-// Middleware
-app.use(cors());
-app.use(express.json());
+// ==========================================
+// MIDDLEWARE DE SEGURIDAD
+// ==========================================
 
-// Verificar conexión a BD
+// Helmet: headers de seguridad HTTP
+app.use(helmet({
+  contentSecurityPolicy: false,
+  crossOriginEmbedderPolicy: false,
+}));
+
+// CORS configurado
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',')
+  : ['http://localhost:5173'];
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.warn(`[SECURITY] Intento de acceso desde origen no permitido: ${origin}`);
+      callback(new Error('Origen no permitido por CORS'));
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
+
+app.use(express.json({ limit: '1mb' }));
+
+// Rate limiter global (100 peticiones por 15 min)
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  message: { error: 'Demasiadas peticiones. Intenta de nuevo más tarde.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use('/api', globalLimiter);
+
+// Rate limiter específico para login (10 intentos por 15 min)
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: { error: 'Demasiados intentos de inicio de sesión. Intenta en 15 minutos.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Rate limiter para registro (5 registros por hora)
+const registerLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 5,
+  message: { error: 'Demasiados registros. Intenta en 1 hora.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// ==========================================
+// CONEXIÓN A BD
+// ==========================================
 pool.query('SELECT NOW()')
   .then(() => console.log('✅ Conectado a PostgreSQL'))
   .catch(err => console.error('❌ Error de conexión:', err.message));
 
-// Middleware de autenticación
-function auth(req, res, next) {
+// ==========================================
+// MIDDLEWARE DE AUTENTICACIÓN
+// ==========================================
+async function auth(req, res, next) {
   const token = req.headers.authorization?.replace('Bearer ', '');
-  if (!token) return res.status(401).json({ error: 'No autorizado' });
+  if (!token) {
+    console.warn(`[SECURITY] Intento de acceso sin token - IP: ${req.ip}`);
+    return res.status(401).json({ error: 'No autorizado' });
+  }
   try {
-    req.user = jwt.verify(token, JWT_SECRET);
+    const payload = jwt.verify(token, JWT_SECRET);
+    // Verificar que el usuario aún existe y obtener rol actualizado
+    const { rows } = await pool.query('SELECT id, role FROM users WHERE id = $1', [payload.id]);
+    if (rows.length === 0) {
+      console.warn(`[SECURITY] Token de usuario eliminado - ID: ${payload.id}`);
+      return res.status(401).json({ error: 'Usuario no encontrado' });
+    }
+    req.user = { id: payload.id, email: payload.email, role: rows[0].role };
     next();
-  } catch {
+  } catch (err) {
+    console.warn(`[SECURITY] Token inválido - IP: ${req.ip} - ${new Date().toISOString()}`);
     res.status(401).json({ error: 'Token inválido' });
   }
 }
 
-// Middleware solo coach
 function coachOnly(req, res, next) {
   if (req.user.role !== 'coach' && req.user.role !== 'admin') {
+    console.warn(`[SECURITY] Acceso denegado a coach - User ID: ${req.user.id}, Role: ${req.user.role}`);
     return res.status(403).json({ error: 'No tienes permisos' });
   }
   next();
 }
 
-// === RUTAS ===
+// ==========================================
+// HELPERS
+// ==========================================
+function validateString(val, maxLen = 255) {
+  return typeof val === 'string' && val.trim().length > 0 && val.length <= maxLen;
+}
+
+function validatePassword(password) {
+  const regex = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
+  return regex.test(password);
+}
+
+function safeError(err) {
+  return isDev ? err.message : 'Error interno del servidor';
+}
+
+// ==========================================
+// RUTAS
+// ==========================================
 
 // Login
-app.post('/api/login', async (req, res) => {
+app.post('/api/login', loginLimiter, async (req, res) => {
   try {
     const { email, password } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email y contraseña son requeridos' });
+    }
+
     const { rows } = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
-    if (rows.length === 0) return res.status(401).json({ error: 'Credenciales incorrectas' });
+    if (rows.length === 0) {
+      console.warn(`[SECURITY] Login fallido (usuario no existe): ${email} - IP: ${req.ip}`);
+      return res.status(401).json({ error: 'Credenciales incorrectas' });
+    }
 
     const valid = await bcrypt.compare(password, rows[0].password);
-    if (!valid) return res.status(401).json({ error: 'Credenciales incorrectas' });
+    if (!valid) {
+      console.warn(`[SECURITY] Login fallido (contraseña): ${email} - IP: ${req.ip}`);
+      return res.status(401).json({ error: 'Credenciales incorrectas' });
+    }
 
     const token = jwt.sign(
-      { id: rows[0].id, email: rows[0].email, role: rows[0].role },
+      { id: rows[0].id, email: rows[0].email },
       JWT_SECRET,
-      { expiresIn: '24h' }
+      { expiresIn: '8h' }
     );
 
+    console.log(`[AUTH] Login exitoso: ${email} - ID: ${rows[0].id}`);
     res.json({
       token,
       user: { id: rows[0].id, name: rows[0].name, email: rows[0].email, role: rows[0].role },
     });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Error en login:', err.message);
+    res.status(500).json({ error: safeError(err) });
   }
 });
 
+// Logout (registrar en logs)
+app.post('/api/logout', auth, (req, res) => {
+  console.log(`[AUTH] Logout: ${req.user.email}`);
+  res.json({ success: true });
+});
+
 // Registrar atleta
-app.post('/api/athletes', auth, coachOnly, async (req, res) => {
+app.post('/api/athletes', auth, coachOnly, registerLimiter, async (req, res) => {
   try {
     const { email, password, name, planMonths, planType } = req.body;
-    const hash = await bcrypt.hash(password, 10);
+
+    if (!validateString(name, 100)) return res.status(400).json({ error: 'Nombre inválido' });
+    if (!validateString(email, 255)) return res.status(400).json({ error: 'Email inválido' });
+    if (!validatePassword(password)) {
+      return res.status(400).json({ error: 'La contraseña debe tener al menos 8 caracteres, una letra y un número.' });
+    }
+
+    const hash = await bcrypt.hash(password, 12);
 
     const { rows } = await pool.query(
       'INSERT INTO users (name, email, password, role, plan_type) VALUES ($1, $2, $3, $4, $5) RETURNING id',
-      [name, email, hash, 'athlete', planType || 'premium']
+      [name.trim(), email.toLowerCase().trim(), hash, 'athlete', planType || 'premium']
     );
 
     const userId = rows[0].id;
@@ -93,9 +215,11 @@ app.post('/api/athletes', auth, coachOnly, async (req, res) => {
     await pool.query('INSERT INTO subscriptions (user_id, end_date) VALUES ($1, $2)',
       [userId, endDate.toISOString().split('T')[0]]);
 
+    console.log(`[AUDIT] Atleta creado por coach ${req.user.email}: ${name} (${email})`);
     res.json({ success: true, user_id: userId });
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    console.error('Error al crear atleta:', err.message);
+    res.status(400).json({ error: safeError(err) });
   }
 });
 
@@ -142,18 +266,24 @@ app.get('/api/exercises', auth, async (req, res) => {
 
 app.post('/api/exercises', auth, coachOnly, async (req, res) => {
   const { name, description, focus_id, video_url } = req.body;
+  if (!validateString(name, 200)) return res.status(400).json({ error: 'Nombre inválido' });
+  if (description && description.length > 500) return res.status(400).json({ error: 'Descripción demasiado larga' });
+  if (video_url && !/^https?:\/\/.+/.test(video_url)) return res.status(400).json({ error: 'URL de video inválida' });
+
   const { rows } = await pool.query(
     'INSERT INTO exercises (name, description, focus_id, video_url) VALUES ($1, $2, $3, $4) RETURNING id',
-    [name, description, focus_id, video_url]
+    [name.trim(), description?.trim(), focus_id, video_url]
   );
   res.json({ success: true, id: rows[0].id });
 });
 
 app.put('/api/exercises/:id', auth, coachOnly, async (req, res) => {
   const { name, description, focus_id, video_url } = req.body;
+  if (!validateString(name, 200)) return res.status(400).json({ error: 'Nombre inválido' });
+
   await pool.query(
     'UPDATE exercises SET name = $1, description = $2, focus_id = $3, video_url = $4 WHERE id = $5',
-    [name, description, focus_id, video_url, req.params.id]
+    [name.trim(), description?.trim(), focus_id, video_url, req.params.id]
   );
   res.json({ success: true });
 });
@@ -163,7 +293,7 @@ app.delete('/api/exercises/:id', auth, coachOnly, async (req, res) => {
   res.json({ success: true });
 });
 
-// Rutinas (Workout Plans) - Para el atleta (su propia rutina)
+// Rutinas
 app.get('/api/workout', auth, async (req, res) => {
   try {
     const { rows: plans } = await pool.query(
@@ -191,20 +321,20 @@ app.get('/api/workout', auth, async (req, res) => {
 
     res.json({ ...plans[0], days: daysWithExercises });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: safeError(err) });
   }
 });
 
-// Crear rutina (coach)
 app.post('/api/workout', auth, coachOnly, async (req, res) => {
   const { user_id, name, days } = req.body;
+  if (!validateString(name, 200)) return res.status(400).json({ error: 'Nombre del plan inválido' });
 
   try {
     await pool.query('UPDATE workout_plans SET is_active = false WHERE user_id = $1 AND is_active = true', [user_id]);
 
     const { rows: planRows } = await pool.query(
       'INSERT INTO workout_plans (user_id, name) VALUES ($1, $2) RETURNING id',
-      [user_id, name]
+      [user_id, name.trim()]
     );
     const planId = planRows[0].id;
 
@@ -224,11 +354,10 @@ app.post('/api/workout', auth, coachOnly, async (req, res) => {
 
     res.json({ success: true, plan_id: planId });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: safeError(err) });
   }
 });
 
-// Ver rutina de un atleta específico (coach)
 app.get('/api/workout/:userId', auth, coachOnly, async (req, res) => {
   try {
     const { rows: plans } = await pool.query(
@@ -254,16 +383,18 @@ app.get('/api/workout/:userId', auth, coachOnly, async (req, res) => {
 
     res.json({ ...plans[0], days: daysWithExercises });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: safeError(err) });
   }
 });
 
 // Sesiones
 app.post('/api/sessions', auth, async (req, res) => {
   const { routine_name, exercises, total_volume, date } = req.body;
+  if (!validateString(routine_name, 200)) return res.status(400).json({ error: 'Nombre de rutina inválido' });
+
   await pool.query(
     'INSERT INTO workout_sessions (user_id, routine_name, exercises, total_volume, date) VALUES ($1, $2, $3, $4, $5)',
-    [req.user.id, routine_name, JSON.stringify(exercises), total_volume, date || new Date().toISOString().split('T')[0]]
+    [req.user.id, routine_name.trim(), JSON.stringify(exercises), total_volume, date || new Date().toISOString().split('T')[0]]
   );
   res.json({ success: true });
 });
@@ -279,17 +410,21 @@ app.get('/api/sessions', auth, async (req, res) => {
 // Suscripciones
 app.post('/api/subscriptions', auth, coachOnly, async (req, res) => {
   const { user_id, end_date, plan_type } = req.body;
+  if (!end_date) return res.status(400).json({ error: 'Fecha de vencimiento requerida' });
+
   await pool.query('UPDATE subscriptions SET is_active = false WHERE user_id = $1 AND is_active = true', [user_id]);
   await pool.query('INSERT INTO subscriptions (user_id, end_date) VALUES ($1, $2)', [user_id, end_date]);
   if (plan_type) {
     await pool.query('UPDATE users SET plan_type = $1 WHERE id = $2', [plan_type, user_id]);
   }
+
+  console.log(`[AUDIT] Suscripción actualizada por coach ${req.user.email}: user_id=${user_id}`);
   res.json({ success: true });
 });
 
-// === CRON JOBS ===
-
-// Desactivar suscripciones vencidas cada día a medianoche
+// ==========================================
+// CRON JOBS
+// ==========================================
 cron.schedule('0 0 * * *', async () => {
   try {
     const { rows } = await pool.query(
@@ -303,7 +438,6 @@ cron.schedule('0 0 * * *', async () => {
   }
 });
 
-// Avisar suscripciones por vencer (7 días antes, a las 8 AM)
 cron.schedule('0 8 * * *', async () => {
   try {
     const { rows } = await pool.query(
@@ -323,6 +457,7 @@ cron.schedule('0 8 * * *', async () => {
 });
 
 console.log('⏰ Cron jobs iniciados');
+console.log('🛡️ Security middleware activo: Helmet, CORS, Rate Limiting');
 
 // Servir frontend
 app.use(express.static(join(__dirname, 'dist')));

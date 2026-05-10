@@ -33,7 +33,7 @@ export default function Login() {
                 body: JSON.stringify({ email, password }),
             });
 
-            console.log('✅ Usuario autenticado:', data.user);
+            if (import.meta.env.DEV) console.log('✅ Usuario autenticado:', data.user);
 
             localStorage.setItem('charly_token', data.token);
             localStorage.setItem('charly_user', JSON.stringify(data.user));
