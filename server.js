@@ -6,7 +6,7 @@ import jwt from 'jsonwebtoken';
 import cron from 'node-cron';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 import crypto from 'crypto';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
@@ -30,21 +30,7 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false },
 });
 
-const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 587,
-  secure: false,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-  tls: {
-    rejectUnauthorized: false,
-  },
-  connectionTimeout: 10000,
-  greetingTimeout: 10000,
-  socketTimeout: 10000,
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 // ==========================================
 // MIDDLEWARE DE SEGURIDAD
@@ -594,8 +580,8 @@ app.post('/api/forgot-password', async (req, res) => {
 
     const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password?token=${token}`;
 
-    await transporter.sendMail({
-      from: `"Charly Coach" <${process.env.EMAIL_USER}>`,
+    await resend.emails.send({
+      from: 'Charly Coach <onboarding@resend.dev>',
       to: email,
       subject: 'Recuperación de contraseña - Charly Coach',
       html: `
