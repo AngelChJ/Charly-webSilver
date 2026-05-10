@@ -6,7 +6,7 @@ import jwt from 'jsonwebtoken';
 import cron from 'node-cron';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
-import { Resend } from 'resend';
+// Email: Brevo HTTP API (no SMTP — funciona en Railway)
 import crypto from 'crypto';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
@@ -30,7 +30,26 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false },
 });
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// sendEmail: helper que usa Brevo HTTP API para enviar correos
+async function sendEmail({ to, subject, html }) {
+  const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+    method: 'POST',
+    headers: {
+      'api-key': process.env.BREVO_API_KEY,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      sender: { name: 'Charly Coach', email: process.env.EMAIL_USER },
+      to: [{ email: to }],
+      subject,
+      htmlContent: html,
+    }),
+  });
+  if (!res.ok) {
+    const errBody = await res.text();
+    throw new Error(`Brevo error ${res.status}: ${errBody}`);
+  }
+}
 
 // ==========================================
 // MIDDLEWARE DE SEGURIDAD
@@ -580,8 +599,7 @@ app.post('/api/forgot-password', async (req, res) => {
 
     const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password?token=${token}`;
 
-    await resend.emails.send({
-      from: 'Charly Coach <onboarding@resend.dev>',
+    await sendEmail({
       to: email,
       subject: 'Recuperación de contraseña - Charly Coach',
       html: `
