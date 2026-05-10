@@ -26,13 +26,14 @@ interface Day {
 interface Props {
     athleteId: string;
     athleteName: string;
+    existingPlan?: any;
     onClose: () => void;
     onSaved: () => void;
 }
 
 const DAY_LABELS = ['LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES', 'SÁBADO'];
 
-export default function RoutineModal({ athleteId, athleteName, onClose, onSaved }: Props) {
+export default function RoutineModal({ athleteId, athleteName, existingPlan, onClose, onSaved }: Props) {
     const [planName, setPlanName] = useState('');
     const [days, setDays] = useState<Day[]>([]);
     const [allExercises, setAllExercises] = useState<Exercise[]>([]);
@@ -47,7 +48,23 @@ export default function RoutineModal({ athleteId, athleteName, onClose, onSaved 
                 setLoading(false);
             })
             .catch(() => setLoading(false));
-    }, []);
+
+        // Precargar rutina existente
+        if (existingPlan) {
+            setPlanName(existingPlan.name || '');
+            setDays(existingPlan.days?.map((d: any) => ({
+                day_label: d.day_label,
+                sort_order: d.sort_order,
+                exercises: d.exercises?.map((ex: any) => ({
+                    exercise_id: ex.exercise_id,
+                    sets: ex.sets,
+                    reps: ex.reps,
+                    rest_seconds: ex.rest_seconds || 90,
+                    sort_order: ex.sort_order || 1,
+                })) || [],
+            })) || []);
+        }
+    }, [existingPlan]);
 
     const addDay = () => {
         if (days.length >= 6) return;
@@ -146,7 +163,7 @@ export default function RoutineModal({ athleteId, athleteName, onClose, onSaved 
             <div className={styles.modal}>
                 <div className={styles.header}>
                     <div>
-                        <h2 className={styles.title}>ASIGNAR RUTINA</h2>
+                        <h2 className={styles.title}>{existingPlan ? 'EDITAR RUTINA' : 'ASIGNAR RUTINA'}</h2>
                         <p className={styles.subtitle}>Atleta: {athleteName}</p>
                     </div>
                     <button onClick={onClose} className={styles.closeBtn}><X size={18} /></button>

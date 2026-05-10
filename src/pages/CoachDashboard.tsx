@@ -264,6 +264,7 @@ export default function CoachDashboard() {
                 <RoutineModal
                     athleteId={String(selectedAthlete.id)}
                     athleteName={selectedAthlete.name}
+                    existingPlan={getWorkoutForAthlete(selectedAthlete.id)}
                     onClose={() => setSelectedAthlete(null)}
                     onSaved={() => { setSelectedAthlete(null); fetchAthletes(); fetchWorkouts(); }}
                 />
