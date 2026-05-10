@@ -14,7 +14,6 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
 const PORT = process.env.PORT || 8080;
 
-// Validación crítica: JWT_SECRET DEBE existir
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) {
   console.error('❌ FATAL: JWT_SECRET no está configurado. El servidor no puede iniciar.');
@@ -23,7 +22,6 @@ if (!JWT_SECRET) {
 
 const isDev = process.env.NODE_ENV === 'development';
 
-// PostgreSQL pool
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false },
@@ -33,13 +31,11 @@ const pool = new Pool({
 // MIDDLEWARE DE SEGURIDAD
 // ==========================================
 
-// Helmet: headers de seguridad HTTP
 app.use(helmet({
   contentSecurityPolicy: false,
   crossOriginEmbedderPolicy: false,
 }));
 
-// CORS configurado
 const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(',')
   : ['http://localhost:5173'];
@@ -59,7 +55,6 @@ app.use(cors({
 
 app.use(express.json({ limit: '1mb' }));
 
-// Rate limiter global (100 peticiones por 15 min)
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
@@ -69,7 +64,6 @@ const globalLimiter = rateLimit({
 });
 app.use('/api', globalLimiter);
 
-// Rate limiter específico para login (10 intentos por 15 min)
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 10,
@@ -82,7 +76,6 @@ const loginLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-// Rate limiter para registro (5 registros por hora)
 const registerLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
   max: 5,
@@ -102,7 +95,7 @@ pool.query('SELECT NOW()')
 // MIDDLEWARE DE AUTENTICACIÓN (con caché)
 // ==========================================
 const userRoleCache = new Map();
-const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutos
+const CACHE_TTL_MS = 5 * 60 * 1000;
 
 async function auth(req, res, next) {
   const token = req.headers.authorization?.replace('Bearer ', '');
@@ -113,14 +106,12 @@ async function auth(req, res, next) {
   try {
     const payload = jwt.verify(token, JWT_SECRET);
 
-    // Verificar caché
     const cached = userRoleCache.get(payload.id);
     if (cached && (Date.now() - cached.ts) < CACHE_TTL_MS) {
       req.user = { id: payload.id, email: payload.email, role: cached.role };
       return next();
     }
 
-    // Consultar BD
     const { rows } = await pool.query('SELECT id, role FROM users WHERE id = $1', [payload.id]);
     if (rows.length === 0) {
       userRoleCache.delete(payload.id);
@@ -128,7 +119,6 @@ async function auth(req, res, next) {
       return res.status(401).json({ error: 'Usuario no encontrado' });
     }
 
-    // Guardar en caché
     userRoleCache.set(payload.id, { role: rows[0].role, ts: Date.now() });
     req.user = { id: payload.id, email: payload.email, role: rows[0].role };
     next();
@@ -138,7 +128,6 @@ async function auth(req, res, next) {
   }
 }
 
-// Limpiar caché cada hora
 setInterval(() => {
   const now = Date.now();
   for (const [key, val] of userRoleCache.entries()) {
@@ -217,7 +206,7 @@ app.post('/api/logout', auth, (req, res) => {
   res.json({ success: true });
 });
 
-// Registrar atleta (con registerLimiter ANTES de auth)
+// Registrar atleta
 app.post('/api/athletes', registerLimiter, auth, coachOnly, async (req, res) => {
   try {
     const { email, password, name, planMonths, planType } = req.body;
@@ -393,6 +382,20 @@ app.post('/api/workout', auth, coachOnly, async (req, res) => {
   if (!validateString(name, 200)) return res.status(400).json({ error: 'Nombre del plan inválido' });
 
   try {
+    // 🆕 Verificar que user_id es un atleta real
+    const { rows: targetUser } = await pool.query(
+      'SELECT id, role FROM users WHERE id = $1',
+      [user_id]
+    );
+    if (targetUser.length === 0 || targetUser[0].role !== 'athlete') {
+      return res.status(400).json({ error: 'Usuario no encontrado o no es atleta' });
+    }
+
+    // 🆕 Limitar días del plan
+    if (!Array.isArray(days) || days.length > 14) {
+      return res.status(400).json({ error: 'El plan no puede tener más de 14 días' });
+    }
+
     await pool.query('UPDATE workout_plans SET is_active = false WHERE user_id = $1 AND is_active = true', [user_id]);
 
     const { rows: planRows } = await pool.query(
@@ -458,6 +461,11 @@ app.post('/api/sessions', auth, async (req, res) => {
     const { routine_name, exercises, total_volume, date } = req.body;
     if (!validateString(routine_name, 200)) return res.status(400).json({ error: 'Nombre de rutina inválido' });
 
+    // 🆕 Validar estructura de exercises
+    if (!Array.isArray(exercises) || exercises.length === 0) {
+      return res.status(400).json({ error: 'Formato de ejercicios inválido' });
+    }
+
     await pool.query(
       'INSERT INTO workout_sessions (user_id, routine_name, exercises, total_volume, date) VALUES ($1, $2, $3, $4, $5)',
       [req.user.id, routine_name.trim(), JSON.stringify(exercises), total_volume, date || new Date().toISOString().split('T')[0]]
@@ -487,6 +495,15 @@ app.post('/api/subscriptions', auth, coachOnly, async (req, res) => {
   try {
     const { user_id, end_date, plan_type } = req.body;
     if (!end_date) return res.status(400).json({ error: 'Fecha de vencimiento requerida' });
+
+    // 🆕 Verificar que user_id es un atleta real
+    const { rows: targetUser } = await pool.query(
+      'SELECT id, role FROM users WHERE id = $1',
+      [user_id]
+    );
+    if (targetUser.length === 0 || targetUser[0].role !== 'athlete') {
+      return res.status(400).json({ error: 'Usuario no encontrado o no es atleta' });
+    }
 
     await pool.query('UPDATE subscriptions SET is_active = false WHERE user_id = $1 AND is_active = true', [user_id]);
     await pool.query('INSERT INTO subscriptions (user_id, end_date) VALUES ($1, $2)', [user_id, end_date]);
