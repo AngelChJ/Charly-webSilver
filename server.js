@@ -12,10 +12,15 @@ const app = express();
 const PORT = process.env.PORT || 8080;
 const JWT_SECRET = process.env.JWT_SECRET || 'charly-super-secreto-2026';
 
+// Validar DATABASE_URL
+if (!process.env.DATABASE_URL) {
+  console.error('⚠️  DATABASE_URL no está definida. Variables disponibles:', Object.keys(process.env).filter(k => k.includes('DATABASE') || k.includes('PG') || k.includes('POSTGRES')).join(', ') || 'ninguna');
+}
+
 // PostgreSQL pool
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false },
+  ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false,
 });
 
 // Middleware
@@ -25,6 +30,9 @@ app.use(express.json());
 // Crear tablas
 async function initDB() {
   try {
+    // Test connection first
+    const testResult = await pool.query('SELECT NOW()');
+    console.log('✅ Conexión a PostgreSQL exitosa:', testResult.rows[0].now);
     await pool.query(`
       CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
@@ -111,7 +119,7 @@ async function initDB() {
 
     console.log('✅ Base de datos inicializada');
   } catch (err) {
-    console.error('❌ Error al inicializar BD:', err.message);
+    console.error('❌ Error al inicializar BD:', JSON.stringify(err, Object.getOwnPropertyNames(err)));
   }
 }
 
@@ -197,44 +205,65 @@ app.get('/api/athletes', auth, async (req, res) => {
     return res.status(403).json({ error: 'No tienes permisos' });
   }
 
-  const { rows } = await pool.query(`
-    SELECT u.*, s.end_date as sub_end, s.is_active as sub_active
-    FROM users u
-    LEFT JOIN subscriptions s ON u.id = s.user_id AND s.is_active = true
-    WHERE u.role = 'athlete'
-    ORDER BY u.name
-  `);
-
-  res.json(rows);
+  try {
+    const { rows } = await pool.query(`
+      SELECT u.id, u.name, u.email, u.age, u.weight_kg, u.goal, u.plan_type,
+             s.end_date as sub_end, s.is_active as sub_active,
+             COALESCE((
+               SELECT COUNT(*) FROM workout_sessions ws
+               WHERE ws.user_id = u.id
+               AND ws.date >= date_trunc('week', CURRENT_DATE)
+             ), 0)::int as sessions_this_week
+      FROM users u
+      LEFT JOIN subscriptions s ON u.id = s.user_id AND s.is_active = true
+      WHERE u.role = 'athlete'
+      ORDER BY u.name
+    `);
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // Perfil
 app.get('/api/profile', auth, async (req, res) => {
-  const { rows } = await pool.query(
-    'SELECT id, name, email, role, age, weight_kg, height_cm, gender, goal, plan_type FROM users WHERE id = $1',
-    [req.user.id]
-  );
-  if (rows.length === 0) return res.status(404).json({ error: 'Usuario no encontrado' });
-  res.json(rows[0]);
+  try {
+    const { rows } = await pool.query(
+      'SELECT id, name, email, role, age, weight_kg, height_cm, gender, goal, plan_type FROM users WHERE id = $1',
+      [req.user.id]
+    );
+    if (rows.length === 0) return res.status(404).json({ error: 'Usuario no encontrado' });
+    res.json(rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.put('/api/profile', auth, async (req, res) => {
-  const { weight_kg, goal, age, height_cm } = req.body;
-  await pool.query(
-    'UPDATE users SET weight_kg = COALESCE($1, weight_kg), goal = COALESCE($2, goal), age = COALESCE($3, age), height_cm = COALESCE($4, height_cm) WHERE id = $5',
-    [weight_kg, goal, age, height_cm, req.user.id]
-  );
-  res.json({ success: true });
+  try {
+    const { weight_kg, goal, age, height_cm } = req.body;
+    await pool.query(
+      'UPDATE users SET weight_kg = COALESCE($1, weight_kg), goal = COALESCE($2, goal), age = COALESCE($3, age), height_cm = COALESCE($4, height_cm) WHERE id = $5',
+      [weight_kg, goal, age, height_cm, req.user.id]
+    );
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // Ejercicios
 app.get('/api/exercises', auth, async (req, res) => {
-  const { rows } = await pool.query(`
-    SELECT e.*, ef.name as focus_name FROM exercises e
-    LEFT JOIN exercise_focus ef ON e.focus_id = ef.id
-    ORDER BY e.name
-  `);
-  res.json(rows);
+  try {
+    const { rows } = await pool.query(`
+      SELECT e.*, ef.name as focus_name FROM exercises e
+      LEFT JOIN exercise_focus ef ON e.focus_id = ef.id
+      ORDER BY e.name
+    `);
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.post('/api/exercises', auth, async (req, res) => {
@@ -280,11 +309,15 @@ app.post('/api/sessions', auth, async (req, res) => {
 });
 
 app.get('/api/sessions', auth, async (req, res) => {
-  const { rows } = await pool.query(
-    'SELECT * FROM workout_sessions WHERE user_id = $1 ORDER BY date DESC',
-    [req.user.id]
-  );
-  res.json(rows);
+  try {
+    const { rows } = await pool.query(
+      'SELECT * FROM workout_sessions WHERE user_id = $1 ORDER BY date DESC',
+      [req.user.id]
+    );
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // Suscripciones
