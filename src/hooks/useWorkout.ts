@@ -1,34 +1,42 @@
 import { useState, useEffect } from 'react';
 import { api } from '../lib/api';
 
+interface ExerciseItem {
+  id: number;
+  sets: number;
+  reps: number;
+  rest_seconds: number;
+  exercise: {
+    id: number;
+    name: string;
+    description: string;
+    focus_id: number;
+    video_url: string;
+  };
+}
+
+interface Day {
+  id: number;
+  day_label: string;
+  exercises: ExerciseItem[];
+}
+
+interface WorkoutPlan {
+  id: number;
+  name: string;
+  days: Day[];
+}
+
 export function useWorkout(userId: number | string | undefined) {
-  const [plan, setPlan] = useState<any>(null);
+  const [plan, setPlan] = useState<WorkoutPlan | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!userId) { setLoading(false); return; }
-    api('/api/exercises')
-      .then((data: any[]) => {
-        if (data && data.length > 0) {
-          setPlan({
-            id: 1,
-            name: 'RUTINA',
-            days: [{
-              day_label: 'LUNES',
-              exercises: data.map((ex: any) => ({
-                id: ex.id,
-                exercise: ex,
-                sets: 3,
-                reps: 10,
-              })),
-            }],
-          });
-        } else {
-          setPlan(null);
-        }
-      })
-      .catch((err: any) => setError(err.message))
+    api('/api/workout')
+      .then(data => setPlan(data))
+      .catch(err => setError(err.message))
       .finally(() => setLoading(false));
   }, [userId]);
 

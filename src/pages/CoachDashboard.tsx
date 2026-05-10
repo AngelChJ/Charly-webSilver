@@ -197,7 +197,14 @@ export default function CoachDashboard() {
                 )}
             </main>
 
-            {selectedAthlete && <RoutineModal athleteId={String(selectedAthlete.id)} athleteName={selectedAthlete.name} onClose={() => setSelectedAthlete(null)} onSaved={() => { setSelectedAthlete(null); fetchAthletes(); }} />}
+            {selectedAthlete && (
+                <RoutineModal
+                    athleteId={String(selectedAthlete.id)}
+                    athleteName={selectedAthlete.name}
+                    onClose={() => setSelectedAthlete(null)}
+                    onSaved={() => { setSelectedAthlete(null); fetchAthletes(); }}
+                />
+            )}
             {showAddAthlete && <AddAthleteModal onClose={() => setShowAddAthlete(false)} onCreated={() => { setShowAddAthlete(false); fetchAthletes(); }} />}
             {selectedAthleteForSub && <SubscriptionModal athleteId={String(selectedAthleteForSub.id)} athleteName={selectedAthleteForSub.name} onClose={() => setSelectedAthleteForSub(null)} onSaved={() => { setSelectedAthleteForSub(null); fetchAthletes(); }} />}
             {showExerciseModal && <ExerciseModal exercise={selectedExercise} onClose={() => { setShowExerciseModal(false); setSelectedExercise(null); }} onSaved={() => { setShowExerciseModal(false); setSelectedExercise(null); loadExercises(); }} />}
