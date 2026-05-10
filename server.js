@@ -1,4 +1,3 @@
-
 import express from 'express';
 import cors from 'cors';
 import pkg from 'pg';
@@ -12,11 +11,10 @@ import crypto from 'crypto';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
-
 const { Pool } = pkg;
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
-app.set('trust proxy', 1); // ← aquí
+app.set('trust proxy', 1);
 const PORT = process.env.PORT || 8080;
 
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -47,8 +45,6 @@ const transporter = nodemailer.createTransport({
   greetingTimeout: 10000,
   socketTimeout: 10000,
 });
-
-
 
 // ==========================================
 // MIDDLEWARE DE SEGURIDAD
@@ -304,6 +300,35 @@ app.put('/api/profile', auth, async (req, res) => {
     res.json({ success: true });
   } catch (err) {
     console.error('Error en PUT /api/profile:', err.message);
+    res.status(500).json({ error: safeError(err) });
+  }
+});
+
+// Cambiar contraseña
+app.put('/api/change-password', auth, async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ error: 'Contraseña actual y nueva son requeridas' });
+    }
+
+    if (!validatePassword(newPassword)) {
+      return res.status(400).json({ error: 'La nueva contraseña debe tener al menos 8 caracteres, una letra y un número.' });
+    }
+
+    const { rows } = await pool.query('SELECT password FROM users WHERE id = $1', [req.user.id]);
+    const valid = await bcrypt.compare(currentPassword, rows[0].password);
+    if (!valid) {
+      return res.status(401).json({ error: 'La contraseña actual es incorrecta' });
+    }
+
+    const hash = await bcrypt.hash(newPassword, 12);
+    await pool.query('UPDATE users SET password = $1 WHERE id = $2', [hash, req.user.id]);
+
+    console.log(`[AUDIT] Contraseña cambiada para user_id: ${req.user.id}`);
+    res.json({ message: 'Contraseña actualizada correctamente' });
+  } catch (err) {
+    console.error('Error en change-password:', err.message);
     res.status(500).json({ error: safeError(err) });
   }
 });
@@ -591,7 +616,7 @@ app.post('/api/forgot-password', async (req, res) => {
     console.log(`[AUTH] Recuperación solicitada: ${email}`);
     res.json({ message: 'Si el email existe, recibirás un enlace de recuperación.' });
   } catch (err) {
-    console.error(`[ERROR] forgot-password (${email}):`, err.message);
+    console.error('[ERROR] forgot-password:', err.message);
     res.status(500).json({ error: safeError(err) });
   }
 });
