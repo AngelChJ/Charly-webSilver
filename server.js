@@ -378,11 +378,11 @@ app.get('/api/workout', auth, async (req, res) => {
 });
 
 app.post('/api/workout', auth, coachOnly, async (req, res) => {
-  const { user_id, name, days } = req.body;
-  if (!validateString(name, 200)) return res.status(400).json({ error: 'Nombre del plan inválido' });
-
   try {
-    // 🆕 Verificar que user_id es un atleta real
+    const { user_id, name, days } = req.body;
+    if (!validateString(name, 200)) return res.status(400).json({ error: 'Nombre del plan inválido' });
+
+    // Verificar que user_id es un atleta real
     const { rows: targetUser } = await pool.query(
       'SELECT id, role FROM users WHERE id = $1',
       [user_id]
@@ -391,9 +391,16 @@ app.post('/api/workout', auth, coachOnly, async (req, res) => {
       return res.status(400).json({ error: 'Usuario no encontrado o no es atleta' });
     }
 
-    // 🆕 Limitar días del plan
+    // Limitar días del plan
     if (!Array.isArray(days) || days.length > 14) {
       return res.status(400).json({ error: 'El plan no puede tener más de 14 días' });
+    }
+
+    // Validar estructura de cada día
+    for (const day of days) {
+      if (!validateString(day.day_label, 100) || !Array.isArray(day.exercises)) {
+        return res.status(400).json({ error: 'Estructura de días inválida' });
+      }
     }
 
     await pool.query('UPDATE workout_plans SET is_active = false WHERE user_id = $1 AND is_active = true', [user_id]);
@@ -461,7 +468,6 @@ app.post('/api/sessions', auth, async (req, res) => {
     const { routine_name, exercises, total_volume, date } = req.body;
     if (!validateString(routine_name, 200)) return res.status(400).json({ error: 'Nombre de rutina inválido' });
 
-    // 🆕 Validar estructura de exercises
     if (!Array.isArray(exercises) || exercises.length === 0) {
       return res.status(400).json({ error: 'Formato de ejercicios inválido' });
     }
@@ -496,7 +502,6 @@ app.post('/api/subscriptions', auth, coachOnly, async (req, res) => {
     const { user_id, end_date, plan_type } = req.body;
     if (!end_date) return res.status(400).json({ error: 'Fecha de vencimiento requerida' });
 
-    // 🆕 Verificar que user_id es un atleta real
     const { rows: targetUser } = await pool.query(
       'SELECT id, role FROM users WHERE id = $1',
       [user_id]
