@@ -241,8 +241,10 @@ export default function CoachDashboard() {
                                 <option value="name">Orden A-Z</option>
                                 <option value="focus">Orden Z-A</option>
                             </select>
-                            <button onClick={() => { setSelectedExercise(null); setShowExerciseModal(true); }} className={styles.addBtn}><Dumbbell size={16} /> NUEVO</button>
                         </div>
+                        <button onClick={() => { setSelectedExercise(null); setShowExerciseModal(true); }} className={styles.addBtn}>
+                            <Dumbbell size={16} /> NUEVO EJERCICIO
+                        </button>
                         {exercises.length === 0 ? <div className={styles.emptyContainer}><p>No hay ejercicios</p></div>
                             : <div className={styles.exercisesGrid}>
                                 {exercises.filter((ex: any) => exerciseSearch ? ex.name.toLowerCase().includes(exerciseSearch.toLowerCase()) : true).map((ex: any) => (

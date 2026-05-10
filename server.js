@@ -3,6 +3,7 @@ import cors from 'cors';
 import pkg from 'pg';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import cron from 'node-cron';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
@@ -285,6 +286,43 @@ app.post('/api/subscriptions', auth, coachOnly, async (req, res) => {
   }
   res.json({ success: true });
 });
+
+// === CRON JOBS ===
+
+// Desactivar suscripciones vencidas cada día a medianoche
+cron.schedule('0 0 * * *', async () => {
+  try {
+    const { rows } = await pool.query(
+      "UPDATE subscriptions SET is_active = false WHERE end_date < CURRENT_DATE AND is_active = true RETURNING user_id"
+    );
+    if (rows.length > 0) {
+      console.log(`🔔 ${rows.length} suscripciones vencidas desactivadas:`, rows.map(r => r.user_id));
+    }
+  } catch (err) {
+    console.error('❌ Error en cron (vencidas):', err.message);
+  }
+});
+
+// Avisar suscripciones por vencer (7 días antes, a las 8 AM)
+cron.schedule('0 8 * * *', async () => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT u.name, u.email, s.end_date 
+       FROM subscriptions s 
+       JOIN users u ON s.user_id = u.id 
+       WHERE s.is_active = true 
+       AND s.end_date = CURRENT_DATE + INTERVAL '7 days'`
+    );
+    if (rows.length > 0) {
+      console.log(`⚠️ ${rows.length} suscripciones por vencer en 7 días:`);
+      rows.forEach(r => console.log(`   - ${r.name} (${r.email}): ${r.end_date}`));
+    }
+  } catch (err) {
+    console.error('❌ Error en cron (aviso):', err.message);
+  }
+});
+
+console.log('⏰ Cron jobs iniciados');
 
 // Servir frontend
 app.use(express.static(join(__dirname, 'dist')));
