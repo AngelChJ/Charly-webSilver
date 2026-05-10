@@ -6,6 +6,8 @@ import jwt from 'jsonwebtoken';
 import cron from 'node-cron';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
+import nodemailer from 'nodemailer';
+import crypto from 'crypto';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
@@ -25,6 +27,14 @@ const isDev = process.env.NODE_ENV === 'development';
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false },
+});
+
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
 });
 
 // ==========================================
@@ -382,7 +392,6 @@ app.post('/api/workout', auth, coachOnly, async (req, res) => {
     const { user_id, name, days } = req.body;
     if (!validateString(name, 200)) return res.status(400).json({ error: 'Nombre del plan inválido' });
 
-    // Verificar que user_id es un atleta real
     const { rows: targetUser } = await pool.query(
       'SELECT id, role FROM users WHERE id = $1',
       [user_id]
@@ -391,12 +400,10 @@ app.post('/api/workout', auth, coachOnly, async (req, res) => {
       return res.status(400).json({ error: 'Usuario no encontrado o no es atleta' });
     }
 
-    // Limitar días del plan
     if (!Array.isArray(days) || days.length > 14) {
       return res.status(400).json({ error: 'El plan no puede tener más de 14 días' });
     }
 
-    // Validar estructura de cada día
     for (const day of days) {
       if (!validateString(day.day_label, 100) || !Array.isArray(day.exercises)) {
         return res.status(400).json({ error: 'Estructura de días inválida' });
@@ -520,6 +527,100 @@ app.post('/api/subscriptions', auth, coachOnly, async (req, res) => {
     res.json({ success: true });
   } catch (err) {
     console.error('Error en POST /api/subscriptions:', err.message);
+    res.status(500).json({ error: safeError(err) });
+  }
+});
+
+// ==========================================
+// RECUPERACIÓN DE CONTRASEÑA
+// ==========================================
+
+app.post('/api/forgot-password', async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ error: 'Email requerido' });
+
+    const { rows } = await pool.query('SELECT id, name FROM users WHERE email = $1', [email]);
+    if (rows.length === 0) {
+      return res.json({ message: 'Si el email existe, recibirás un enlace de recuperación.' });
+    }
+
+    const token = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+
+    await pool.query('UPDATE password_resets SET used = true WHERE user_id = $1 AND used = false', [rows[0].id]);
+    await pool.query(
+      'INSERT INTO password_resets (user_id, token, expires_at) VALUES ($1, $2, $3)',
+      [rows[0].id, token, expiresAt]
+    );
+
+    const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password?token=${token}`;
+
+    await transporter.sendMail({
+      from: `"Charly Coach" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: 'Recuperación de contraseña - Charly Coach',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto;">
+          <h2 style="color: #BCC6CC; background: #080808; padding: 20px; text-align: center;">CHARLY COACH</h2>
+          <div style="padding: 20px; background: #0a0a0a; color: #e8e8e8;">
+            <p>Hola <strong>${rows[0].name}</strong>,</p>
+            <p>Recibimos una solicitud para restablecer tu contraseña.</p>
+            <div style="text-align: center; margin: 25px 0;">
+              <a href="${resetUrl}" style="background: linear-gradient(180deg, #BCC6CC, #808080); color: #000; padding: 12px 30px; text-decoration: none; border-radius: 25px; font-weight: bold;">RESTABLECER CONTRASEÑA</a>
+            </div>
+            <p style="font-size: 12px; color: #666;">Este enlace expira en 15 minutos.</p>
+          </div>
+        </div>
+      `,
+    });
+
+    console.log(`[AUTH] Recuperación solicitada: ${email}`);
+    res.json({ message: 'Si el email existe, recibirás un enlace de recuperación.' });
+  } catch (err) {
+    console.error('Error en forgot-password:', err.message);
+    res.status(500).json({ error: safeError(err) });
+  }
+});
+
+app.get('/api/verify-reset-token', async (req, res) => {
+  try {
+    const { token } = req.query;
+    if (!token) return res.status(400).json({ error: 'Token requerido' });
+
+    const { rows } = await pool.query(
+      'SELECT id FROM password_resets WHERE token = $1 AND used = false AND expires_at > NOW()',
+      [token]
+    );
+
+    res.json({ valid: rows.length > 0 });
+  } catch (err) {
+    res.status(500).json({ error: safeError(err) });
+  }
+});
+
+app.post('/api/reset-password', async (req, res) => {
+  try {
+    const { token, password } = req.body;
+    if (!token || !password) return res.status(400).json({ error: 'Token y contraseña requeridos' });
+    if (!validatePassword(password)) {
+      return res.status(400).json({ error: 'La contraseña debe tener al menos 8 caracteres, una letra y un número.' });
+    }
+
+    const { rows } = await pool.query(
+      'SELECT id, user_id FROM password_resets WHERE token = $1 AND used = false AND expires_at > NOW()',
+      [token]
+    );
+    if (rows.length === 0) return res.status(400).json({ error: 'Token inválido o expirado' });
+
+    const hash = await bcrypt.hash(password, 12);
+    await pool.query('UPDATE users SET password = $1 WHERE id = $2', [hash, rows[0].user_id]);
+    await pool.query('UPDATE password_resets SET used = true WHERE id = $1', [rows[0].id]);
+
+    console.log(`[AUTH] Contraseña restablecida para user_id: ${rows[0].user_id}`);
+    res.json({ message: 'Contraseña actualizada correctamente' });
+  } catch (err) {
+    console.error('Error en reset-password:', err.message);
     res.status(500).json({ error: safeError(err) });
   }
 });

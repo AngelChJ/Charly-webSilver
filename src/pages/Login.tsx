@@ -105,6 +105,9 @@ export default function Login() {
                         </div>
                     )}
                 </form>
+                <Link to="/forgot-password" style={{ color: '#666', fontSize: '0.75rem', textDecoration: 'none' }}>
+                    ¿Olvidaste tu contraseña?
+                </Link>
 
                 <footer className={styles.footer}>
                     <p>¿Problemas de acceso? <a href="#">Contacta a soporte técnico</a></p>

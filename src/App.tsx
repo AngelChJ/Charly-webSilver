@@ -9,6 +9,8 @@ import './App.css';
 // Carga inmediata (páginas públicas)
 import Home from './pages/Home';
 import Login from './pages/Login';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 
 // Carga diferida (páginas protegidas)
 const Dashboard = lazy(() => import('./pages/Dashboard'));
@@ -35,6 +37,8 @@ function App() {
           <Route path="/coach" element={
             <CoachRoute><CoachDashboard /></CoachRoute>
           } />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
         </Routes>
       </Suspense>
     </BrowserRouter>
