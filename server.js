@@ -162,7 +162,7 @@ app.delete('/api/exercises/:id', auth, coachOnly, async (req, res) => {
   res.json({ success: true });
 });
 
-// Rutinas (Workout Plans)
+// Rutinas (Workout Plans) - Para el atleta (su propia rutina)
 app.get('/api/workout', auth, async (req, res) => {
   try {
     const { rows: plans } = await pool.query(
@@ -194,6 +194,7 @@ app.get('/api/workout', auth, async (req, res) => {
   }
 });
 
+// Crear rutina (coach)
 app.post('/api/workout', auth, coachOnly, async (req, res) => {
   const { user_id, name, days } = req.body;
 
@@ -221,6 +222,36 @@ app.post('/api/workout', auth, coachOnly, async (req, res) => {
     }
 
     res.json({ success: true, plan_id: planId });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Ver rutina de un atleta específico (coach)
+app.get('/api/workout/:userId', auth, coachOnly, async (req, res) => {
+  try {
+    const { rows: plans } = await pool.query(
+      'SELECT * FROM workout_plans WHERE user_id = $1 AND is_active = true ORDER BY created_at DESC LIMIT 1',
+      [req.params.userId]
+    );
+    if (plans.length === 0) return res.json(null);
+
+    const { rows: days } = await pool.query(
+      'SELECT * FROM plan_days WHERE plan_id = $1 ORDER BY sort_order',
+      [plans[0].id]
+    );
+
+    const daysWithExercises = await Promise.all(days.map(async (day) => {
+      const { rows: exercises } = await pool.query(
+        `SELECT pe.*, e.name FROM plan_exercises pe 
+         JOIN exercises e ON pe.exercise_id = e.id 
+         WHERE pe.day_id = $1 ORDER BY pe.sort_order`,
+        [day.id]
+      );
+      return { ...day, exercises };
+    }));
+
+    res.json({ ...plans[0], days: daysWithExercises });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

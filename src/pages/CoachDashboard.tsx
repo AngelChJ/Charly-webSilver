@@ -42,6 +42,7 @@ export default function CoachDashboard() {
     const [exerciseFilter, setExerciseFilter] = useState<number | 'all'>('all');
     const [exerciseSort, setExerciseSort] = useState<'name' | 'focus'>('name');
     const [menuOpen, setMenuOpen] = useState(false);
+    const [workouts, setWorkouts] = useState<any[]>([]);
 
     const loadExercises = async () => {
         try {
@@ -68,6 +69,32 @@ export default function CoachDashboard() {
     };
 
     useEffect(() => { fetchAthletes(); }, [user]);
+
+    const fetchWorkouts = async () => {
+        try {
+            const athleteIds = athletes.map(a => a.id);
+            if (athleteIds.length === 0) return;
+
+            const allWorkouts = await Promise.all(
+                athleteIds.map(async (id) => {
+                    try {
+                        const data = await api(`/api/workout/${id}`);
+                        return { user_id: id, plan: data };
+                    } catch {
+                        return { user_id: id, plan: null };
+                    }
+                })
+            );
+            setWorkouts(allWorkouts);
+        } catch { }
+    };
+
+    useEffect(() => { if (athletes.length > 0) fetchWorkouts(); }, [athletes]);
+
+    const getWorkoutForAthlete = (athleteId: number) => {
+        const w = workouts.find(w => w.user_id === athleteId);
+        return w?.plan;
+    };
 
     const handleLogout = () => {
         localStorage.removeItem('charly_token');
@@ -123,7 +150,6 @@ export default function CoachDashboard() {
                     {activeTab === 'athletes' && <button onClick={() => setShowAddAthlete(true)} className={styles.addBtn}><UserPlus size={16} /> AÑADIR ATLETA</button>}
                 </header>
 
-                {/* El resto del JSX es igual que antes, solo cambia athlete.id por Number y los datos vienen de la API */}
                 {activeTab === 'athletes' && (
                     <div>
                         {loading ? <div className={styles.loadingContainer}><Loader size={32} style={{ animation: 'spin 1s linear infinite', marginBottom: '1rem' }} /><p>CARGANDO ATLETAS...</p></div>
@@ -158,7 +184,6 @@ export default function CoachDashboard() {
                     </div>
                 )}
 
-                {/* Pestañas routines y exercises mantienen la misma estructura */}
                 {activeTab === 'routines' && (
                     <div>
                         {loading ? (
@@ -167,24 +192,38 @@ export default function CoachDashboard() {
                             <div className={styles.emptyContainer}><p>NO HAY ATLETAS REGISTRADOS</p></div>
                         ) : (
                             <div className={styles.athletesGrid}>
-                                {athletes.map((athlete) => (
-                                    <div key={athlete.id} className={styles.athleteCard}>
-                                        <div className={styles.athleteHeader}>
-                                            <div className={styles.athleteInfo}>
-                                                <div className={styles.avatar}>{athlete.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}</div>
-                                                <div>
-                                                    <h3 className={styles.athleteName}>{athlete.name}</h3>
-                                                    <p className={styles.athleteEmail}>{athlete.plan_type ?? 'Sin plan'} · {athlete.sub_end ? new Date(athlete.sub_end).toLocaleDateString('es-MX') : 'Sin suscripción'}</p>
+                                {athletes.map((athlete) => {
+                                    const workout = getWorkoutForAthlete(athlete.id);
+                                    return (
+                                        <div key={athlete.id} className={styles.athleteCard}>
+                                            <div className={styles.athleteHeader}>
+                                                <div className={styles.athleteInfo}>
+                                                    <div className={styles.avatar}>{athlete.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}</div>
+                                                    <div>
+                                                        <h3 className={styles.athleteName}>{athlete.name}</h3>
+                                                        <p className={styles.athleteEmail}>
+                                                            {workout ? `Rutina: ${workout.name}` : 'Sin rutina asignada'}
+                                                        </p>
+                                                    </div>
                                                 </div>
                                             </div>
+                                            {workout && (
+                                                <div style={{ marginBottom: '0.75rem' }}>
+                                                    {workout.days?.map((day: any) => (
+                                                        <div key={day.id} style={{ fontSize: '0.65rem', color: '#888', marginBottom: '0.25rem' }}>
+                                                            <strong>{day.day_label}:</strong> {day.exercises?.length || 0} ejercicios
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                            <div className={styles.actionButtons}>
+                                                <button onClick={() => setSelectedAthlete({ id: athlete.id, name: athlete.name })} className={styles.actionBtnPrimary} style={{ flex: 1 }}>
+                                                    <Dumbbell size={14} /> {workout ? 'VER / EDITAR RUTINA' : 'ASIGNAR RUTINA'}
+                                                </button>
+                                            </div>
                                         </div>
-                                        <div className={styles.actionButtons}>
-                                            <button onClick={() => setSelectedAthlete({ id: athlete.id, name: athlete.name })} className={styles.actionBtnPrimary} style={{ flex: 1 }}>
-                                                <Dumbbell size={14} /> ASIGNAR / VER RUTINA
-                                            </button>
-                                        </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         )}
                     </div>
@@ -226,7 +265,7 @@ export default function CoachDashboard() {
                     athleteId={String(selectedAthlete.id)}
                     athleteName={selectedAthlete.name}
                     onClose={() => setSelectedAthlete(null)}
-                    onSaved={() => { setSelectedAthlete(null); fetchAthletes(); }}
+                    onSaved={() => { setSelectedAthlete(null); fetchAthletes(); fetchWorkouts(); }}
                 />
             )}
             {showAddAthlete && <AddAthleteModal onClose={() => setShowAddAthlete(false)} onCreated={() => { setShowAddAthlete(false); fetchAthletes(); }} />}
