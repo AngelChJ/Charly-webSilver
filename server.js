@@ -210,7 +210,7 @@ app.get('/api/athletes', auth, async (req, res) => {
 // Perfil
 app.get('/api/profile', auth, async (req, res) => {
   const { rows } = await pool.query(
-    'SELECT id, name, email, role, age, weight_kg, height_cm, gender, goal FROM users WHERE id = $1',
+    'SELECT id, name, email, role, age, weight_kg, height_cm, gender, goal, plan_type FROM users WHERE id = $1',
     [req.user.id]
   );
   if (rows.length === 0) return res.status(404).json({ error: 'Usuario no encontrado' });
@@ -246,6 +246,26 @@ app.post('/api/exercises', auth, async (req, res) => {
     [name, description, focus_id, video_url]
   );
   res.json({ success: true, id: rows[0].id });
+});
+
+app.put('/api/exercises/:id', auth, async (req, res) => {
+  if (req.user.role !== 'coach' && req.user.role !== 'admin') {
+    return res.status(403).json({ error: 'No tienes permisos' });
+  }
+  const { name, description, focus_id, video_url } = req.body;
+  await pool.query(
+    'UPDATE exercises SET name = $1, description = $2, focus_id = $3, video_url = $4 WHERE id = $5',
+    [name, description, focus_id, video_url, req.params.id]
+  );
+  res.json({ success: true });
+});
+
+app.delete('/api/exercises/:id', auth, async (req, res) => {
+  if (req.user.role !== 'coach' && req.user.role !== 'admin') {
+    return res.status(403).json({ error: 'No tienes permisos' });
+  }
+  await pool.query('DELETE FROM exercises WHERE id = $1', [req.params.id]);
+  res.json({ success: true });
 });
 
 // Sesiones
@@ -284,7 +304,7 @@ app.post('/api/subscriptions', auth, async (req, res) => {
 
 // Servir frontend
 app.use(express.static(join(__dirname, 'dist')));
-app.get('*', (req, res) => {
+app.get('/{*path}', (req, res) => {
   res.sendFile(join(__dirname, 'dist', 'index.html'));
 });
 
