@@ -8,8 +8,6 @@ interface Props {
     onCreated: () => void;
 }
 
-const SERVICE_ROLE_KEY = import.meta.env.VITE_SUPABASE_SERVICE_KEY || '';
-
 export default function AddAthleteModal({ onClose, onCreated }: Props) {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
@@ -38,28 +36,40 @@ export default function AddAthleteModal({ onClose, onCreated }: Props) {
         setLoading(true);
 
         try {
-            const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/auth/v1/admin/users`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${SERVICE_ROLE_KEY}`,
-                    'apikey': SERVICE_ROLE_KEY,
-                },
-                body: JSON.stringify({ email, password, email_confirm: true, user_metadata: { name, role: 'athlete' } }),
-            });
+            // Obtener token del coach autenticado
+            const { data: sessionData } = await supabase.auth.getSession();
+            const token = sessionData.session?.access_token;
+
+            if (!token) {
+                setError('Sesión expirada. Inicia sesión de nuevo.');
+                setLoading(false);
+                return;
+            }
+
+            // Llamar a la Edge Function de Supabase (segura, sin exponer SERVICE_KEY)
+            const response = await fetch(
+                `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-athlete`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`,
+                        'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+                    },
+                    body: JSON.stringify({
+                        email,
+                        password,
+                        name,
+                        planMonths,
+                        planType: selectedPlan,
+                    }),
+                }
+            );
 
             const result = await response.json();
-            if (!response.ok) throw new Error(result.msg || result.message || 'Error al crear usuario');
 
-            if (result.id) {
-                await supabase.from('users').update({ name, role: 'athlete', plan_type: selectedPlan }).eq('id', result.id);
-
-                const startDate = new Date().toISOString().split('T')[0];
-                const endDate = new Date();
-                endDate.setMonth(endDate.getMonth() + planMonths);
-                const endDateStr = endDate.toISOString().split('T')[0];
-
-                await supabase.from('subscriptions').insert({ user_id: result.id, start_date: startDate, end_date: endDateStr, is_active: true });
+            if (!response.ok) {
+                throw new Error(result.error || 'Error al crear usuario');
             }
 
             setSuccess(true);
