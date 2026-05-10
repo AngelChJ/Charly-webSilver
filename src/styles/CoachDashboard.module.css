@@ -137,6 +137,8 @@
     align-items: center;
     gap: 0.5rem;
     transition: all 0.2s ease;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .addBtn:hover {
@@ -658,7 +660,11 @@
     }
 
     .exerciseControls {
-        flex-direction: column;
+        display: flex;
+        gap: 0.75rem;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+        align-items: center;
     }
 
     .searchInput {
