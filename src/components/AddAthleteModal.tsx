@@ -20,8 +20,8 @@ export default function AddAthleteModal({ onClose, onCreated }: Props) {
     const [success, setSuccess] = useState(false);
 
     const planTypes = [
-        { id: 'standard', nombre: 'ESTÁNDAR', precio: 800, beneficios: 'Gym + Rutina base + Seguimiento quincenal' },
-        { id: 'premium', nombre: 'PREMIUM', precio: 1200, beneficios: '24/7 + Dieta + Coach WhatsApp + Progreso' },
+        { id: 'standard', nombre: 'ESTÁNDAR', precio: 800, beneficios: 'Dieta personalizada + Rutina base + Seguimiento quincenal' },
+        { id: 'premium', nombre: 'PREMIUM', precio: 1200, beneficios: 'Acceso 24/7 + Coach WhatsApp + Registro de progreso' },
         { id: 'avanzado', nombre: 'AVANZADO', precio: 1800, beneficios: 'Todo + Acompañamiento + Suplementación' },
     ];
 
@@ -95,7 +95,7 @@ export default function AddAthleteModal({ onClose, onCreated }: Props) {
                             <label className={styles.label}>CONTRASEÑA</label>
                             <div className={styles.inputContainer}>
                                 <Lock size={18} color="#666" />
-                                <input type="password" placeholder="Mínimo 6 caracteres" value={password} onChange={(e) => setPassword(e.target.value)} disabled={loading} autoComplete="new-password" className={styles.input} />
+                                <input type="password" placeholder="Mín. 8 caracteres, letra y número" value={password} onChange={(e) => setPassword(e.target.value)} disabled={loading} autoComplete="new-password" className={styles.input} />
                             </div>
                         </div>
 

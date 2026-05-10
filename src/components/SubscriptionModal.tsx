@@ -23,8 +23,8 @@ export default function SubscriptionModal({ athleteId, athleteName, onClose, onS
     const [daysLeft, setDaysLeft] = useState(0);
 
     const plans = [
-        { id: 'standard', nombre: 'PLAN ESTÁNDAR', precio: '800', beneficios: 'Acceso al gym, Rutina base, Seguimiento quincenal' },
-        { id: 'premium', nombre: 'PLAN PREMIUM', precio: '1200', beneficios: 'Acceso 24/7, Dieta personalizada, Coach por WhatsApp, Registro de progreso' },
+        { id: 'standard', nombre: 'PLAN ESTÁNDAR', precio: '800', beneficios: 'Dieta personalizada, Rutina base, Seguimiento quincenal' },
+        { id: 'premium', nombre: 'PLAN PREMIUM', precio: '1200', beneficios: 'Acceso 24/7, Coach por WhatsApp, Registro de progreso' },
         { id: 'avanzado', nombre: 'PLAN AVANZADO', precio: '1800', beneficios: 'Todo lo anterior, Acompañamiento personalizado, Suplementación' },
     ];
 

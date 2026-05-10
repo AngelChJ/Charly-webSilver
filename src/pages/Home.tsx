@@ -20,27 +20,9 @@ const Home = () => {
     ];
 
     const planes = [
-        {
-            id: 0,
-            nombre: "PLAN ESTÁNDAR",
-            precio: "800",
-            beneficios: ["Acceso al gym", "Rutina base", "Seguimiento quincenal"],
-            mensaje: "Hola%20Charly%2C%20me%20interesa%20saber%20m%C3%A1s%20sobre%20el%20plan%20est%C3%A1ndar"
-        },
-        {
-            id: 1,
-            nombre: "PLAN PREMIUM",
-            precio: "1200",
-            beneficios: ["Acceso 24/7", "Dieta personalizada", "Coach por WhatsApp", "Registro de progreso"],
-            mensaje: "Hola%20Charly%2C%20me%20interesa%20saber%20m%C3%A1s%20sobre%20el%20plan%20premium"
-        },
-        {
-            id: 2,
-            nombre: "PLAN AVANZADO",
-            precio: "1800",
-            beneficios: ["Todo lo anterior", "Acompañamiento personalizado", "Suplementación"],
-            mensaje: "Hola%20Charly%2C%20me%20interesa%20saber%20m%C3%A1s%20sobre%20el%20plan%20avanzado"
-        }
+        { id: 0, nombre: "PLAN ESTÁNDAR", precio: "800", beneficios: ["Dieta personalizada", "Rutina base", "Seguimiento quincenal"], mensaje: "Hola%20Charly%2C%20me%20interesa%20saber%20m%C3%A1s%20sobre%20el%20plan%20est%C3%A1ndar" },
+        { id: 1, nombre: "PLAN PREMIUM", precio: "1200", beneficios: ["Acceso 24/7", "Coach por WhatsApp", "Registro de progreso"], mensaje: "Hola%20Charly%2C%20me%20interesa%20saber%20m%C3%A1s%20sobre%20el%20plan%20premium" },
+        { id: 2, nombre: "PLAN AVANZADO", precio: "1800", beneficios: ["Todo lo anterior", "Acompañamiento personalizado", "Suplementación"], mensaje: "Hola%20Charly%2C%20me%20interesa%20saber%20m%C3%A1s%20sobre%20el%20plan%20avanzado" }
     ];
 
     // URL genérica de WhatsApp (hero)
