@@ -10,7 +10,7 @@ const { Pool } = pkg;
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
 const PORT = process.env.PORT || 8080;
-const JWT_SECRET = process.env.JWT_SECRET || 'charly-secreto';
+const JWT_SECRET = process.env.JWT_SECRET || 'charly-super-secreto-2026';
 
 // PostgreSQL pool
 const pool = new Pool({
