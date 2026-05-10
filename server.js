@@ -15,6 +15,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'charly-super-secreto-2026';
 // PostgreSQL pool
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false },
 });
 
 // Middleware
