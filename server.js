@@ -6,7 +6,6 @@ import jwt from 'jsonwebtoken';
 import cron from 'node-cron';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
-// Email: Brevo HTTP API (no SMTP — funciona en Railway)
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import crypto from 'crypto';
@@ -30,7 +29,7 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false },
 });
 
-// sendEmail: helper que usa Brevo HTTP API para enviar correos
+// sendEmail: helper que usa Mailjet HTTP API para enviar correos
 async function sendEmail({ to, subject, html }) {
   const auth = Buffer.from(
     `${process.env.MJ_APIKEY_PUBLIC}:${process.env.MJ_APIKEY_PRIVATE}`
@@ -45,7 +44,7 @@ async function sendEmail({ to, subject, html }) {
     body: JSON.stringify({
       Messages: [{
         From: {
-          Email: 'angelchope39@gmail.com',  // debe ser el email verificado en Mailjet
+          Email: 'angelchope39@gmail.com',
           Name: 'Charly Coach',
         },
         To: [{ Email: to }],
@@ -422,14 +421,28 @@ app.get('/api/workout', auth, async (req, res) => {
     );
 
     const daysWithExercises = await Promise.all(days.map(async (day) => {
-      const { rows: exercises } = await pool.query(
-        `SELECT pe.*, e.name, e.description, e.video_url, e.focus_id 
+      const { rows: exercisesRaw } = await pool.query(
+        `SELECT pe.*, e.id as ex_id, e.name as ex_name, e.description as ex_description, e.video_url as ex_video_url, e.focus_id as ex_focus_id 
          FROM plan_exercises pe 
          JOIN exercises e ON pe.exercise_id = e.id 
          WHERE pe.day_id = $1 
          ORDER BY pe.sort_order`,
         [day.id]
       );
+
+      const exercises = exercisesRaw.map(row => ({
+        id: row.id,
+        sets: row.sets,
+        reps: row.reps,
+        rest_seconds: row.rest_seconds,
+        exercise: {
+          id: row.ex_id,
+          name: row.ex_name,
+          description: row.ex_description,
+          focus_id: row.ex_focus_id,
+          video_url: row.ex_video_url,
+        },
+      }));
       return { ...day, exercises };
     }));
 
@@ -506,12 +519,27 @@ app.get('/api/workout/:userId', auth, coachOnly, async (req, res) => {
     );
 
     const daysWithExercises = await Promise.all(days.map(async (day) => {
-      const { rows: exercises } = await pool.query(
-        `SELECT pe.*, e.name FROM plan_exercises pe 
+      const { rows: exercisesRaw } = await pool.query(
+        `SELECT pe.*, e.id as ex_id, e.name as ex_name, e.description as ex_description, e.video_url as ex_video_url, e.focus_id as ex_focus_id 
+         FROM plan_exercises pe 
          JOIN exercises e ON pe.exercise_id = e.id 
          WHERE pe.day_id = $1 ORDER BY pe.sort_order`,
         [day.id]
       );
+
+      const exercises = exercisesRaw.map(row => ({
+        id: row.id,
+        sets: row.sets,
+        reps: row.reps,
+        rest_seconds: row.rest_seconds,
+        exercise: {
+          id: row.ex_id,
+          name: row.ex_name,
+          description: row.ex_description,
+          focus_id: row.ex_focus_id,
+          video_url: row.ex_video_url,
+        },
+      }));
       return { ...day, exercises };
     }));
 
