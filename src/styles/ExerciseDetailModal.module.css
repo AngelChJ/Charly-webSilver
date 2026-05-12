@@ -1,0 +1,161 @@
+/* ============================================================
+   CHARLY COACH — Modal de Detalle de Ejercicio
+   Estilo: Plata/Negro industrial
+   ============================================================ */
+
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 1rem;
+}
+
+.modal {
+    background: #0a0a0a;
+    border: 1px solid rgba(188, 198, 204, 0.1);
+    border-radius: 20px;
+    max-width: 520px;
+    width: 100%;
+    max-height: 90vh;
+    overflow: auto;
+    padding: 2rem;
+}
+
+/* ─── Header ─── */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+}
+
+.headerInfo {
+    flex: 1;
+}
+
+.exerciseName {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: #BCC6CC;
+    margin: 0;
+    letter-spacing: 0.02em;
+}
+
+.focusBadge {
+    font-size: 0.7rem;
+    font-weight: 600;
+    background: rgba(188, 198, 204, 0.06);
+    padding: 0.2rem 0.6rem;
+    border-radius: 6px;
+    color: #888;
+    display: inline-block;
+    margin-top: 0.5rem;
+}
+
+.closeBtn {
+    background: none;
+    border: 1px solid rgba(188, 198, 204, 0.1);
+    border-radius: 10px;
+    color: #666;
+    cursor: pointer;
+    padding: 0.5rem;
+    display: flex;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.closeBtn:hover {
+    color: #BCC6CC;
+    border-color: rgba(188, 198, 204, 0.2);
+}
+
+/* ─── Video ─── */
+.videoContainer {
+    margin-bottom: 1.5rem;
+}
+
+.videoWrapper {
+    background: #000;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid rgba(188, 198, 204, 0.08);
+}
+
+.video {
+    width: 100%;
+    display: block;
+}
+
+/* ─── Descripción ─── */
+.section {
+    margin-bottom: 1.5rem;
+}
+
+.sectionTitle {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #666;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+}
+
+.descriptionText {
+    font-size: 0.9rem;
+    color: #BCC6CC;
+    line-height: 1.7;
+    margin: 0;
+}
+
+/* ─── Recomendaciones ─── */
+.tipsBox {
+    background: rgba(74, 222, 128, 0.05);
+    border: 1px solid rgba(74, 222, 128, 0.1);
+    border-radius: 10px;
+    padding: 1rem;
+}
+
+.tipsList {
+    margin: 0;
+    padding-left: 1.25rem;
+    color: #888;
+    font-size: 0.85rem;
+    line-height: 1.8;
+}
+
+/* ─── Footer ─── */
+.footer {
+    text-align: right;
+    margin-top: 1rem;
+}
+
+.footerBtn {
+    padding: 0.6rem 1.5rem;
+    border-radius: 10px;
+    border: 1px solid rgba(188, 198, 204, 0.15);
+    background: rgba(188, 198, 204, 0.06);
+    color: #BCC6CC;
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    letter-spacing: 0.05em;
+    transition: all 0.2s ease;
+}
+
+.footerBtn:hover {
+    background: rgba(188, 198, 204, 0.1);
+}
+
+/* ─── Responsive ─── */
+@media (max-width: 640px) {
+    .modal {
+        padding: 1.5rem;
+        border-radius: 16px;
+    }
+}

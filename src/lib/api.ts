@@ -9,7 +9,15 @@ export async function api(path: string, options: RequestInit = {}) {
   if (token) headers['Authorization'] = `Bearer ${token}`;
 
   const res = await fetch(`${API_URL}${path}`, { ...options, headers });
-  const data = await res.json();
+
+  const text = await res.text();
+  let data: any = {};
+  try {
+    data = JSON.parse(text);
+  } catch {
+    if (!res.ok) throw new Error('Error del servidor. Inténtalo de nuevo.');
+  }
+
   if (!res.ok) throw new Error(data.error || 'Error');
   return data;
 }

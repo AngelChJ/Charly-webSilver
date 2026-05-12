@@ -33,7 +33,7 @@ export default function Login() {
                 body: JSON.stringify({ email, password }),
             });
 
-            if (import.meta.env.DEV) console.log('✅ Usuario autenticado:', data.user);
+            console.log('✅ Usuario autenticado:', data.user);
 
             localStorage.setItem('charly_token', data.token);
             localStorage.setItem('charly_user', JSON.stringify(data.user));
@@ -105,12 +105,9 @@ export default function Login() {
                         </div>
                     )}
                 </form>
-                <Link to="/forgot-password" style={{ color: '#666', fontSize: '0.75rem', textDecoration: 'none' }}>
-                    ¿Olvidaste tu contraseña?
-                </Link>
 
                 <footer className={styles.footer}>
-                    <p>¿Problemas de acceso? <a href="#">Contacta a soporte técnico</a></p>
+                    <p>¿Problemas de acceso? <a href="mailto:helpdesk.charly.info@gmail.com?subject=Problema%20de%20acceso%20Charly%20Coach">Contacta a soporte técnico</a></p>
                 </footer>
             </div>
         </div>

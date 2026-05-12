@@ -1,0 +1,185 @@
+/* src/styles/Exercises.module.css */
+
+.page {
+    min-height: 100vh;
+    background: #080808;
+    color: #BCC6CC;
+    font-family: system-ui, -apple-system, sans-serif;
+}
+
+/* ─── Header ─── */
+.header {
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid rgba(188, 198, 204, 0.06);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.backBtn {
+    background: none;
+    border: 1px solid rgba(188, 198, 204, 0.1);
+    border-radius: 10px;
+    color: #666;
+    cursor: pointer;
+    padding: 0.5rem;
+    display: flex;
+    transition: all 0.2s ease;
+}
+
+.backBtn:hover {
+    color: #BCC6CC;
+    border-color: rgba(188, 198, 204, 0.2);
+}
+
+.headerTitle {
+    font-size: 1.3rem;
+    font-weight: 800;
+    margin: 0;
+    letter-spacing: 0.02em;
+}
+
+.silverText {
+    background: linear-gradient(110deg, #808080 0%, #BCC6CC 45%, #FFFFFF 50%, #BCC6CC 55%, #808080 100%);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* ─── Contenido ─── */
+.content {
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* ─── Controles ─── */
+.controls {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+
+.searchBox {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #0a0a0a;
+    padding: 0.7rem 1rem;
+    border-radius: 12px;
+    border: 1px solid rgba(188, 198, 204, 0.1);
+    flex: 1;
+    min-width: 250px;
+}
+
+.searchIcon {
+    color: #666;
+    flex-shrink: 0;
+}
+
+.searchInput {
+    background: none;
+    border: none;
+    outline: none;
+    color: #BCC6CC;
+    width: 100%;
+    font-size: 0.9rem;
+    font-family: inherit;
+}
+
+.filterSelect {
+    background: #0a0a0a;
+    color: #BCC6CC;
+    border: 1px solid rgba(188, 198, 204, 0.1);
+    border-radius: 12px;
+    padding: 0.7rem 1rem;
+    font-size: 0.85rem;
+    font-family: inherit;
+    outline: none;
+    cursor: pointer;
+    min-width: 180px;
+}
+
+/* ─── Resultados ─── */
+.resultCount {
+    font-size: 0.8rem;
+    color: #555;
+    margin-bottom: 1.5rem;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1rem;
+}
+
+.card {
+    background: #0a0a0a;
+    border: 1px solid rgba(188, 198, 204, 0.06);
+    border-radius: 14px;
+    padding: 1.25rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.card:hover {
+    border-color: rgba(188, 198, 204, 0.15);
+}
+
+.cardHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.5rem;
+}
+
+.exerciseName {
+    font-size: 1rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.videoIcon {
+    color: #4ade80;
+    flex-shrink: 0;
+}
+
+.exerciseDesc {
+    font-size: 0.8rem;
+    color: #888;
+    margin: 0.5rem 0;
+    line-height: 1.5;
+}
+
+.cardFooter {
+    margin-top: 1rem;
+}
+
+.focusBadge {
+    font-size: 0.7rem;
+    font-weight: 600;
+    background: rgba(188, 198, 204, 0.06);
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    color: #888;
+    letter-spacing: 0.03em;
+}
+
+/* ─── Estados ─── */
+.loading {
+    text-align: center;
+    color: #666;
+    padding: 4rem;
+}
+
+.empty {
+    text-align: center;
+    padding: 4rem;
+    color: #666;
+}
+
+.emptyIcon {
+    margin-bottom: 1rem;
+    opacity: 0.3;
+}

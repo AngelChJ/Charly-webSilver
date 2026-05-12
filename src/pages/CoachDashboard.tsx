@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Dumbbell, Users, Calendar, TrendingUp, LogOut, Loader, UserPlus, Play, Menu, X } from 'lucide-react';
+import { Dumbbell, Users, Calendar, TrendingUp, LogOut, Loader, UserPlus, Play, Menu, X, Trash2, Search } from 'lucide-react';
 import { api } from '../lib/api';
 import { useAuth } from '../hooks/useAuth';
 import RoutineModal from '../components/RoutineModal';
@@ -43,6 +43,8 @@ export default function CoachDashboard() {
     const [exerciseSort, setExerciseSort] = useState<'name' | 'focus'>('name');
     const [menuOpen, setMenuOpen] = useState(false);
     const [workouts, setWorkouts] = useState<any[]>([]);
+    const [athleteSearch, setAthleteSearch] = useState('');
+    const [athletePlanFilter, setAthletePlanFilter] = useState('all');
 
     const loadExercises = async () => {
         try {
@@ -94,6 +96,16 @@ export default function CoachDashboard() {
     const getWorkoutForAthlete = (athleteId: number) => {
         const w = workouts.find(w => w.user_id === athleteId);
         return w?.plan;
+    };
+
+    const handleDeleteAthlete = async (id: number, name: string) => {
+        if (!confirm(`¿Eliminar a ${name}? Esta acción no se puede deshacer.`)) return;
+        try {
+            await api(`/api/athletes/${id}`, { method: 'DELETE' });
+            fetchAthletes();
+        } catch (err: any) {
+            alert('Error: ' + err.message);
+        }
     };
 
     const handleLogout = () => {
@@ -150,40 +162,65 @@ export default function CoachDashboard() {
                     {activeTab === 'athletes' && <button onClick={() => setShowAddAthlete(true)} className={styles.addBtn}><UserPlus size={16} /> AÑADIR ATLETA</button>}
                 </header>
 
+                {/* Pestaña ATLETAS */}
                 {activeTab === 'athletes' && (
                     <div>
+                        <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#0a0a0a', padding: '0.5rem 1rem', borderRadius: '10px', border: '1px solid rgba(188,198,204,0.1)', flex: 1, minWidth: '200px' }}>
+                                <Search size={16} color="#666" />
+                                <input type="text" placeholder="Buscar atleta..." value={athleteSearch}
+                                    onChange={(e) => setAthleteSearch(e.target.value)}
+                                    style={{ background: 'none', border: 'none', outline: 'none', color: '#BCC6CC', width: '100%', fontSize: '0.85rem', fontFamily: 'inherit' }} />
+                            </div>
+                            <select value={athletePlanFilter} onChange={(e) => setAthletePlanFilter(e.target.value)}
+                                style={{ background: '#0a0a0a', color: '#BCC6CC', border: '1px solid rgba(188,198,204,0.1)', borderRadius: '10px', padding: '0.5rem 1rem', fontSize: '0.75rem', fontFamily: 'inherit', outline: 'none', cursor: 'pointer' }}>
+                                <option value="all">Todos los planes</option>
+                                <option value="standard">Estándar</option>
+                                <option value="premium">Premium</option>
+                                <option value="avanzado">Avanzado</option>
+                            </select>
+                        </div>
                         {loading ? <div className={styles.loadingContainer}><Loader size={32} style={{ animation: 'spin 1s linear infinite', marginBottom: '1rem' }} /><p>CARGANDO ATLETAS...</p></div>
                             : error ? <div className={styles.errorContainer}>{error}</div>
                                 : athletes.length === 0 ? <div className={styles.emptyContainer}><p>NO HAY ATLETAS REGISTRADOS</p></div>
                                     : <div className={styles.athletesGrid}>
-                                        {athletes.map((athlete) => {
-                                            const subStatus = getSubscriptionStatus(athlete);
-                                            return (
-                                                <div key={athlete.id} className={styles.athleteCard}>
-                                                    <div className={styles.athleteHeader}>
-                                                        <div className={styles.athleteInfo}>
-                                                            <div className={styles.avatar}>{athlete.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}</div>
-                                                            <div><h3 className={styles.athleteName}>{athlete.name}</h3><p className={styles.athleteEmail}>{athlete.email}</p></div>
+                                        {athletes
+                                            .filter(a => !athleteSearch || a.name.toLowerCase().includes(athleteSearch.toLowerCase()) || a.email.toLowerCase().includes(athleteSearch.toLowerCase()))
+                                            .filter(a => athletePlanFilter === 'all' || a.plan_type === athletePlanFilter)
+                                            .map((athlete) => {
+                                                const subStatus = getSubscriptionStatus(athlete);
+                                                return (
+                                                    <div key={athlete.id} className={styles.athleteCard}>
+                                                        <div className={styles.athleteHeader}>
+                                                            <div className={styles.athleteInfo}>
+                                                                <div className={styles.avatar}>{athlete.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}</div>
+                                                                <div><h3 className={styles.athleteName}>{athlete.name}</h3><p className={styles.athleteEmail}>{athlete.email}</p></div>
+                                                            </div>
+                                                            <span className={styles.badge} style={{ background: `${subStatus.color}15`, color: subStatus.color, border: `1px solid ${subStatus.color}30` }}>{subStatus.label}</span>
                                                         </div>
-                                                        <span className={styles.badge} style={{ background: `${subStatus.color}15`, color: subStatus.color, border: `1px solid ${subStatus.color}30` }}>{subStatus.label}</span>
+                                                        <div className={styles.statsGrid}>
+                                                            <div className={styles.statItem}><span className={styles.statLabel}>META</span>{getGoalLabel(athlete.goal)}</div>
+                                                            <div className={styles.statItem}><span className={styles.statLabel}>PESO</span>{athlete.weight_kg ?? '-'} kg</div>
+                                                            <div className={styles.statItem}><span className={styles.statLabel}>PLAN ACTUAL</span>{athlete.plan_type ?? 'Sin plan'}</div>
+                                                            <div className={styles.statItem}><span className={styles.statLabel}>SESIONES (7 DÍAS)</span>{athlete.sessions_this_week}</div>
+                                                        </div>
+                                                        <div className={styles.actionButtons}>
+                                                            <button onClick={() => setSelectedAthlete({ id: athlete.id, name: athlete.name })} className={styles.actionBtnPrimary}><Dumbbell size={14} /> RUTINA</button>
+                                                            <button onClick={() => setSelectedAthleteForSub({ id: athlete.id, name: athlete.name })} className={styles.actionBtnSecondary}><Calendar size={14} /> SUSCRIPCIÓN</button>
+                                                            <button onClick={() => handleDeleteAthlete(athlete.id, athlete.name)}
+                                                                style={{ padding: '0.5rem', borderRadius: '8px', border: '1px solid rgba(248,113,113,0.2)', background: 'transparent', color: '#f87171', cursor: 'pointer', flex: '0 0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                                                title="Eliminar atleta">
+                                                                <Trash2 size={14} />
+                                                            </button>
+                                                        </div>
                                                     </div>
-                                                    <div className={styles.statsGrid}>
-                                                        <div className={styles.statItem}><span className={styles.statLabel}>META</span>{getGoalLabel(athlete.goal)}</div>
-                                                        <div className={styles.statItem}><span className={styles.statLabel}>PESO</span>{athlete.weight_kg ?? '-'} kg</div>
-                                                        <div className={styles.statItem}><span className={styles.statLabel}>PLAN ACTUAL</span>{athlete.plan_type ?? 'Sin plan'}</div>
-                                                        <div className={styles.statItem}><span className={styles.statLabel}>SESIONES (7 DÍAS)</span>{athlete.sessions_this_week}</div>
-                                                    </div>
-                                                    <div className={styles.actionButtons}>
-                                                        <button onClick={() => setSelectedAthlete({ id: athlete.id, name: athlete.name })} className={styles.actionBtnPrimary}><Dumbbell size={14} /> ASIGNAR RUTINA</button>
-                                                        <button onClick={() => setSelectedAthleteForSub({ id: athlete.id, name: athlete.name })} className={styles.actionBtnSecondary}><Calendar size={14} /> SUSCRIPCIÓN</button>
-                                                    </div>
-                                                </div>
-                                            );
-                                        })}
+                                                );
+                                            })}
                                     </div>}
                     </div>
                 )}
 
+                {/* Pestaña RUTINAS */}
                 {activeTab === 'routines' && (
                     <div>
                         {loading ? (
@@ -211,7 +248,7 @@ export default function CoachDashboard() {
                                                 <div style={{ marginBottom: '0.75rem' }}>
                                                     {workout.days?.map((day: any) => (
                                                         <div key={day.id} style={{ fontSize: '0.65rem', color: '#888', marginBottom: '0.25rem' }}>
-                                                            <strong>{day.day_label}:</strong> {day.exercises?.length || 0} ejercicios
+                                                            <strong>{day.day_label}:</strong> {day.exercises?.map((ex: any) => ex.exercise?.name || ex.name).join(', ') || 'Sin ejercicios'}
                                                         </div>
                                                     ))}
                                                 </div>
@@ -229,6 +266,7 @@ export default function CoachDashboard() {
                     </div>
                 )}
 
+                {/* Pestaña EJERCICIOS */}
                 {activeTab === 'exercises' && (
                     <div>
                         <div className={styles.exerciseControls}>

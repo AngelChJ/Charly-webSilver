@@ -1,18 +1,22 @@
 import { useNavigate, Link, useLocation } from 'react-router-dom';
-import { Dumbbell, Check, User, LogOut, TrendingUp, Calendar, Menu, X, Flag, MessageCircle, Loader } from 'lucide-react';
+import { Dumbbell, Check, User, LogOut, TrendingUp, Menu, X, Flag, MessageCircle, Loader, Plus, Trash2 } from 'lucide-react';
 import styles from '../styles/Dashboard.module.css';
 import { api } from '../lib/api';
 import { useWorkout } from '../hooks/useWorkout';
 import { useAuth } from '../hooks/useAuth';
+import ExerciseDetailModal from '../components/ExerciseDetailModal';
 import { useState, useMemo, useEffect } from 'react';
+
+interface SetState {
+    weight: number;
+    reps: number;
+    done: boolean;
+}
 
 interface ExerciseState {
     id: number;
     name: string;
-    sets: number;
-    reps: number;
-    weight: number;
-    done: boolean;
+    sets: SetState[];
 }
 
 export default function Dashboard() {
@@ -24,6 +28,9 @@ export default function Dashboard() {
     const { user } = useAuth();
     const { plan, loading, error } = useWorkout(user?.id);
 
+    const [selectedExerciseDetail, setSelectedExerciseDetail] = useState<any>(null);
+
+    // ─── Día actual según mapeo semanal ───
     const todayDay = useMemo(() => {
         if (!plan || !plan.days || plan.days.length === 0) return null;
         const todayIndex = new Date().getDay();
@@ -36,15 +43,13 @@ export default function Dashboard() {
         return plan.days[dayIndex];
     }, [plan]);
 
+    // ─── Transformar ejercicios del día actual ───
     const exercises: ExerciseState[] = useMemo(() => {
         if (!todayDay) return [];
         return todayDay.exercises.map((ex: any) => ({
             id: ex.id,
             name: ex.exercise?.name ?? 'Ejercicio sin nombre',
-            sets: ex.sets,
-            reps: ex.reps,
-            weight: 0,
-            done: false,
+            sets: [{ weight: 0, reps: ex.reps || 10, done: false }],
         }));
     }, [todayDay]);
 
@@ -62,26 +67,52 @@ export default function Dashboard() {
 
     const currentExercises = exState.length > 0 ? exState : exercises;
 
-    const completed = currentExercises.filter((e) => e.done).length;
-    const progressPct = currentExercises.length > 0 ? Math.round((completed / currentExercises.length) * 100) : 0;
-    const totalVolume = currentExercises.filter((e) => e.done).reduce((sum, ex) => sum + ex.sets * ex.reps * ex.weight, 0);
+    const completed = currentExercises.reduce(
+        (sum, ex) => sum + ex.sets.filter((s) => s.done).length, 0
+    );
+    const totalSets = currentExercises.reduce((sum, ex) => sum + ex.sets.length, 0);
+    const progressPct = totalSets > 0 ? Math.round((completed / totalSets) * 100) : 0;
+    const totalVolume = currentExercises.reduce(
+        (sum, ex) =>
+            sum + ex.sets.filter((s) => s.done).reduce((acc, s) => acc + s.reps * s.weight, 0),
+        0
+    );
 
-    const toggleExercise = (index: number) => {
+    const toggleSet = (exIndex: number, setIndex: number) => {
         const newEx = [...currentExercises];
-        newEx[index].done = !newEx[index].done;
+        newEx[exIndex].sets[setIndex].done = !newEx[exIndex].sets[setIndex].done;
         setExState(newEx);
     };
 
-    const updateWeight = (index: number, weight: number) => {
+    const updateSet = (exIndex: number, setIndex: number, field: 'weight' | 'reps', value: number) => {
         const newEx = [...currentExercises];
-        newEx[index].weight = weight;
+        newEx[exIndex].sets[setIndex][field] = value;
+        setExState(newEx);
+    };
+
+    const addSet = (exIndex: number) => {
+        const newEx = [...currentExercises];
+        newEx[exIndex].sets.push({ weight: 0, reps: 10, done: false });
+        setExState(newEx);
+    };
+
+    const removeSet = (exIndex: number, setIndex: number) => {
+        const newEx = [...currentExercises];
+        if (newEx[exIndex].sets.length <= 1) return;
+        newEx[exIndex].sets = newEx[exIndex].sets.filter((_, i) => i !== setIndex);
         setExState(newEx);
     };
 
     const handleFinishSession = async () => {
-        const completedEx = currentExercises.filter((e) => e.done);
-        if (completedEx.length === 0) {
-            alert('Completa al menos un ejercicio antes de finalizar.');
+        const allSets = currentExercises.flatMap((ex) =>
+            ex.sets.filter((s) => s.done).map((s) => ({
+                name: ex.name,
+                reps: s.reps,
+                weight: s.weight,
+            }))
+        );
+        if (allSets.length === 0) {
+            alert('Completa al menos una serie antes de finalizar.');
             return;
         }
 
@@ -91,12 +122,7 @@ export default function Dashboard() {
                 body: JSON.stringify({
                     routine_name: todayDay?.day_label ?? plan?.name ?? 'RUTINA',
                     date: new Date().toISOString().split('T')[0],
-                    exercises: completedEx.map((ex) => ({
-                        name: ex.name,
-                        sets: ex.sets,
-                        reps: ex.reps,
-                        weight: ex.weight,
-                    })),
+                    exercises: allSets,
                     total_volume: totalVolume,
                 }),
             });
@@ -128,12 +154,15 @@ export default function Dashboard() {
 
     useEffect(() => {
         if (!user?.id) return;
-        api('/api/sessions').then((data: any[]) => {
-            const today = new Date().toISOString().split('T')[0];
-            const todaySessions = data.filter((s: any) => s.date?.startsWith?.(today));
-            if (todaySessions.length > 0) setAlreadyTrained(true);
-            setWeekSessions(data);
-        }).catch(() => { }).finally(() => setSessionCheckLoading(false));
+        api('/api/sessions')
+            .then((data: any[]) => {
+                const today = new Date().toISOString().split('T')[0];
+                const todaySessions = data.filter((s: any) => s.date?.startsWith?.(today));
+                if (todaySessions.length > 0) setAlreadyTrained(true);
+                setWeekSessions(data);
+            })
+            .catch(() => { })
+            .finally(() => setSessionCheckLoading(false));
     }, [user?.id]);
 
     const WEEK_DATA = useMemo(() => {
@@ -177,6 +206,9 @@ export default function Dashboard() {
                     <Link to="/dashboard" className={location.pathname === '/dashboard' ? styles.menuItemActive : styles.menuItem} onClick={() => setMenuOpen(false)}>
                         <Dumbbell size={20} /> MI PLAN
                     </Link>
+                    <Link to="/exercises" className={location.pathname === '/exercises' ? styles.menuItemActive : styles.menuItem} onClick={() => setMenuOpen(false)}>
+                        <Dumbbell size={20} /> EJERCICIOS
+                    </Link>
                     <Link to="/progress" className={location.pathname === '/progress' ? styles.menuItemActive : styles.menuItem} onClick={() => setMenuOpen(false)}>
                         <TrendingUp size={20} /> PROGRESO
                     </Link>
@@ -206,41 +238,64 @@ export default function Dashboard() {
                             </div>
                         ) : alreadyTrained ? (
                             <div style={{ textAlign: 'center', padding: '3rem 1.5rem', color: '#BCC6CC' }}>
-                                <div style={{ fontSize: '2.5rem', marginBottom: '1rem', filter: 'drop-shadow(0 0 10px rgba(188,198,204,0.3))' }}>🏆</div>
-                                <h3 style={{ fontSize: '1.1rem', fontWeight: 800, letterSpacing: '0.05em', marginBottom: '0.75rem', background: 'linear-gradient(110deg, #808080 0%, #BCC6CC 45%, #FFFFFF 50%, #BCC6CC 55%, #808080 100%)', backgroundSize: '200% auto', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>¡OBJETIVO CUMPLIDO!</h3>
-                                <p style={{ fontSize: '0.85rem', color: '#888', lineHeight: '1.6', maxWidth: '340px', margin: '0 auto 1.5rem' }}>Cumpliste con los objetivos de hoy. Mañana te esperan nuevos logros por alcanzar.</p>
-                                <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-                                    <button onClick={() => navigate('/progress')} style={{ padding: '0.75rem 1.5rem', borderRadius: '12px', border: '1px solid rgba(188,198,204,0.15)', background: 'rgba(188,198,204,0.04)', color: '#BCC6CC', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.1em', cursor: 'pointer', fontFamily: 'inherit' }}>VER MI PROGRESO</button>
-                                    <button onClick={() => navigate('/profile')} style={{ padding: '0.75rem 1.5rem', borderRadius: '12px', border: '1px solid rgba(188,198,204,0.08)', background: 'transparent', color: '#666', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.1em', cursor: 'pointer', fontFamily: 'inherit' }}>ACTUALIZAR PERFIL</button>
+                                <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>🏆</div>
+                                <h3 style={{ fontSize: '1.1rem', fontWeight: 800 }}>¡OBJETIVO CUMPLIDO!</h3>
+                                <p style={{ fontSize: '0.85rem', color: '#888', marginTop: '0.5rem' }}>
+                                    Cumpliste con los objetivos de hoy. Mañana te esperan nuevos logros.
+                                </p>
+                                <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', marginTop: '1rem' }}>
+                                    <button onClick={() => navigate('/progress')} style={{ padding: '0.75rem 1.5rem', borderRadius: '12px', border: '1px solid rgba(188,198,204,0.15)', background: 'rgba(188,198,204,0.04)', color: '#BCC6CC', fontSize: '0.7rem', fontWeight: 700, cursor: 'pointer' }}>VER PROGRESO</button>
                                 </div>
                             </div>
                         ) : error ? (
-                            <div style={{ textAlign: 'center', padding: '3rem', color: '#f87171' }}>
-                                <p>Error al cargar la rutina</p>
-                                <p style={{ fontSize: '0.65rem', marginTop: '0.5rem', color: '#888' }}>{error}</p>
-                            </div>
+                            <div style={{ textAlign: 'center', padding: '3rem', color: '#f87171' }}>Error: {error}</div>
                         ) : !todayDay ? (
                             <div style={{ textAlign: 'center', padding: '3rem', color: '#666' }}>
-                                <p style={{ fontSize: '0.85rem', letterSpacing: '0.08em' }}>DÍA DE DESCANSO</p>
-                                <p style={{ fontSize: '0.7rem', marginTop: '0.5rem', color: '#555' }}>
-                                    {plan ? 'Vuelve mañana para tu próxima sesión.' : 'No tienes una rutina activa. Contacta a tu coach.'}
-                                </p>
+                                <p>DÍA DE DESCANSO</p>
                             </div>
                         ) : (
                             <>
                                 <div className={styles.exerciseList}>
                                     {currentExercises.map((ex, i) => (
-                                        <div key={i} className={ex.done ? styles.exerciseDone : styles.exerciseCard} onClick={() => toggleExercise(i)}>
-                                            <div className={styles.exerciseInfo}>
-                                                <span className={styles.exName}>{ex.name}</span>
-                                                <span className={styles.exMeta}>{ex.sets} series · {ex.reps} reps</span>
-                                                <div className={styles.weightRow}>
-                                                    <input type="number" className={styles.weightInput} value={ex.weight || ''} placeholder="0" onChange={(e) => updateWeight(i, +e.target.value)} onClick={(e) => e.stopPropagation()} />
-                                                    <span className={styles.weightUnit}>{unit}</span>
-                                                </div>
-                                            </div>
-                                            <div className={styles.checkCircle}>
-                                                {ex.done && <Check size={20} color="#4ade80" />}
+                                        <div key={i} className={styles.exerciseCard}>
+                                            <div className={styles.exerciseInfo} style={{ width: '100%' }}>
+                                                <span
+                                                    className={styles.exName}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        const fullExercise = todayDay?.exercises?.find((fe: any) => fe.exercise?.name === ex.name);
+                                                        setSelectedExerciseDetail({
+                                                            name: ex.name,
+                                                            description: fullExercise?.exercise?.description || '',
+                                                            video_url: fullExercise?.exercise?.video_url || '',
+                                                            focus_name: fullExercise?.exercise?.focus_name || '',
+                                                        });
+                                                    }}
+                                                    style={{ cursor: 'pointer', textDecoration: 'underline', textUnderlineOffset: '3px' }}
+                                                >
+                                                    {ex.name}
+                                                </span>
+                                                {ex.sets.map((set, j) => (
+                                                    <div key={j} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem', paddingLeft: '0.5rem', borderLeft: set.done ? '2px solid #4ade80' : '2px solid rgba(188,198,204,0.15)' }}>
+                                                        <span style={{ fontSize: '0.7rem', color: '#666', width: '40px' }}>Serie {j + 1}</span>
+                                                        <input type="number" className={styles.weightInput} value={set.weight || ''} placeholder="0" onClick={(e) => e.stopPropagation()} onChange={(e) => updateSet(i, j, 'weight', +e.target.value)} style={{ width: '60px' }} />
+                                                        <span className={styles.weightUnit}>{unit}</span>
+                                                        <span style={{ fontSize: '0.7rem', color: '#666' }}>×</span>
+                                                        <input type="number" className={styles.weightInput} value={set.reps || ''} placeholder="0" onClick={(e) => e.stopPropagation()} onChange={(e) => updateSet(i, j, 'reps', +e.target.value)} style={{ width: '50px' }} />
+                                                        <span style={{ fontSize: '0.65rem', color: '#666' }}>reps</span>
+                                                        <button onClick={(e) => { e.stopPropagation(); toggleSet(i, j); }} style={{ marginLeft: 'auto', width: '28px', height: '28px', borderRadius: '50%', border: set.done ? '2px solid #4ade80' : '2px solid rgba(188,198,204,0.2)', background: set.done ? 'rgba(74,222,128,0.1)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                                                            {set.done && <Check size={14} color="#4ade80" />}
+                                                        </button>
+                                                        {ex.sets.length > 1 && (
+                                                            <button onClick={(e) => { e.stopPropagation(); removeSet(i, j); }} style={{ background: 'none', border: 'none', color: '#666', cursor: 'pointer', padding: '2px' }}>
+                                                                <Trash2 size={12} />
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                ))}
+                                                <button onClick={(e) => { e.stopPropagation(); addSet(i); }} style={{ marginTop: '0.5rem', padding: '0.25rem 0.75rem', borderRadius: '6px', border: '1px dashed rgba(188,198,204,0.15)', background: 'transparent', color: '#666', fontSize: '0.65rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                                                    <Plus size={12} /> Agregar serie
+                                                </button>
                                             </div>
                                         </div>
                                     ))}
@@ -259,7 +314,7 @@ export default function Dashboard() {
                                 <div className={styles.progressCircle}>
                                     <span className={styles.progressCircleValue}>{progressPct}%</span>
                                 </div>
-                                <span className={styles.progressLabel}>{completed} de {currentExercises.length} completados</span>
+                                <span className={styles.progressLabel}>{completed} de {totalSets} series</span>
                                 {totalVolume > 0 && <p style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: '#888' }}>VOLUMEN: {totalVolume.toLocaleString()} {unit}</p>}
                             </div>
                         </div>
@@ -281,6 +336,13 @@ export default function Dashboard() {
                     </aside>
                 </div>
             </main>
+
+            {selectedExerciseDetail && (
+                <ExerciseDetailModal
+                    exercise={selectedExerciseDetail}
+                    onClose={() => setSelectedExerciseDetail(null)}
+                />
+            )}
         </div>
     );
 }

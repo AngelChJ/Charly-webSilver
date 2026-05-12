@@ -422,9 +422,10 @@ app.get('/api/workout', auth, async (req, res) => {
 
     const daysWithExercises = await Promise.all(days.map(async (day) => {
       const { rows: exercisesRaw } = await pool.query(
-        `SELECT pe.*, e.id as ex_id, e.name as ex_name, e.description as ex_description, e.video_url as ex_video_url, e.focus_id as ex_focus_id 
+        `SELECT pe.*, e.id as ex_id, e.name as ex_name, e.description as ex_description, e.video_url as ex_video_url, e.focus_id as ex_focus_id, ef.name as ex_focus_name
          FROM plan_exercises pe 
          JOIN exercises e ON pe.exercise_id = e.id 
+         LEFT JOIN exercise_focus ef ON e.focus_id = ef.id
          WHERE pe.day_id = $1 
          ORDER BY pe.sort_order`,
         [day.id]
@@ -440,6 +441,7 @@ app.get('/api/workout', auth, async (req, res) => {
           name: row.ex_name,
           description: row.ex_description,
           focus_id: row.ex_focus_id,
+          focus_name: row.ex_focus_name,
           video_url: row.ex_video_url,
         },
       }));
@@ -520,9 +522,10 @@ app.get('/api/workout/:userId', auth, coachOnly, async (req, res) => {
 
     const daysWithExercises = await Promise.all(days.map(async (day) => {
       const { rows: exercisesRaw } = await pool.query(
-        `SELECT pe.*, e.id as ex_id, e.name as ex_name, e.description as ex_description, e.video_url as ex_video_url, e.focus_id as ex_focus_id 
+        `SELECT pe.*, e.id as ex_id, e.name as ex_name, e.description as ex_description, e.video_url as ex_video_url, e.focus_id as ex_focus_id, ef.name as ex_focus_name
          FROM plan_exercises pe 
          JOIN exercises e ON pe.exercise_id = e.id 
+         LEFT JOIN exercise_focus ef ON e.focus_id = ef.id
          WHERE pe.day_id = $1 ORDER BY pe.sort_order`,
         [day.id]
       );
@@ -537,6 +540,7 @@ app.get('/api/workout/:userId', auth, coachOnly, async (req, res) => {
           name: row.ex_name,
           description: row.ex_description,
           focus_id: row.ex_focus_id,
+          focus_name: row.ex_focus_name,
           video_url: row.ex_video_url,
         },
       }));
@@ -701,6 +705,22 @@ app.post('/api/reset-password', async (req, res) => {
     res.json({ message: 'Contraseña actualizada correctamente' });
   } catch (err) {
     console.error('Error en reset-password:', err.message);
+    res.status(500).json({ error: safeError(err) });
+  }
+});
+// Eliminar atleta (coach)
+app.delete('/api/athletes/:id', auth, coachOnly, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { rowCount } = await pool.query(
+      'DELETE FROM users WHERE id = $1 AND role = $2',
+      [id, 'athlete']
+    );
+    if (rowCount === 0) return res.status(404).json({ error: 'Atleta no encontrado' });
+    console.log(`[AUDIT] Atleta eliminado por coach ${req.user.email}: ID ${id}`);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Error al eliminar atleta:', err.message);
     res.status(500).json({ error: safeError(err) });
   }
 });

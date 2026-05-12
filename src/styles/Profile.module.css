@@ -325,6 +325,54 @@
     color: #4CAF50;
 }
 
+/* ─── Change Password ────────────────────────────────────── */
+.passwordInput {
+    width: 100%;
+    max-width: 100%;
+    padding: 0.75rem;
+    border-radius: 10px;
+    border: 1px solid rgba(188, 198, 204, 0.1);
+    background: rgba(188, 198, 204, 0.03);
+    color: #BCC6CC;
+    font-size: 0.85rem;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s ease;
+}
+
+.passwordInput:focus {
+    border-color: rgba(188, 198, 204, 0.25);
+}
+
+.passwordField {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.changePasswordBtn {
+    padding: 0.65rem 1rem;
+    border-radius: 10px;
+    border: 1px solid rgba(188, 198, 204, 0.15);
+    background: rgba(188, 198, 204, 0.06);
+    color: #BCC6CC;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s ease;
+}
+
+.changePasswordBtn:hover {
+    background: rgba(188, 198, 204, 0.1);
+}
+
+.passwordError {
+    color: #f87171;
+    font-size: 0.7rem;
+}
+
 /* ─── Responsive ─────────────────────────────────────────── */
 @media (max-width: 640px) {
     .container {
