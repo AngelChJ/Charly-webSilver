@@ -158,6 +158,7 @@ export default function Dashboard() {
 
     useEffect(() => {
         if (!user?.id) return;
+        if (alreadyTrained) return; // Evita re-fetch si ya entrenó hoy
         api('/api/sessions')
             .then((data: any[]) => {
                 const today = new Date().toISOString().split('T')[0];

@@ -40,7 +40,7 @@ export default function CoachDashboard() {
     const [showExerciseModal, setShowExerciseModal] = useState(false);
     const [exerciseSearch, setExerciseSearch] = useState('');
     const [exerciseFilter, setExerciseFilter] = useState<number | 'all'>('all');
-    const [exerciseSort, setExerciseSort] = useState<'name' | 'focus'>('name');
+    const [exerciseSort, setExerciseSort] = useState<'name' | 'name_desc'>('name');
     const [menuOpen, setMenuOpen] = useState(false);
     const [workouts, setWorkouts] = useState<any[]>([]);
     const [athleteSearch, setAthleteSearch] = useState('');
@@ -275,9 +275,9 @@ export default function CoachDashboard() {
                                 <option value="all">Todos los grupos</option>
                                 {focuses.map((f: any) => (<option key={f.id} value={f.id}>{f.name}</option>))}
                             </select>
-                            <select value={exerciseSort} onChange={(e) => setExerciseSort(e.target.value as 'name' | 'focus')} className={styles.filterSelect}>
+                            <select value={exerciseSort} onChange={(e) => setExerciseSort(e.target.value as 'name' | 'name_desc')} className={styles.filterSelect}>
                                 <option value="name">Orden A-Z</option>
-                                <option value="focus">Orden Z-A</option>
+                                <option value="name_desc">Orden Z-A</option>
                             </select>
                         </div>
                         <button onClick={() => { setSelectedExercise(null); setShowExerciseModal(true); }} className={styles.addBtn}>
@@ -285,7 +285,13 @@ export default function CoachDashboard() {
                         </button>
                         {exercises.length === 0 ? <div className={styles.emptyContainer}><p>No hay ejercicios</p></div>
                             : <div className={styles.exercisesGrid}>
-                                {exercises.filter((ex: any) => exerciseSearch ? ex.name.toLowerCase().includes(exerciseSearch.toLowerCase()) : true).map((ex: any) => (
+                                {exercises
+                                    .filter((ex: any) => !exerciseSearch || ex.name.toLowerCase().includes(exerciseSearch.toLowerCase()))
+                                    .filter((ex: any) => exerciseFilter === 'all' || ex.focus_id === exerciseFilter)
+                                    .sort((a: any, b: any) => exerciseSort === 'name'
+                                        ? a.name.localeCompare(b.name)
+                                        : b.name.localeCompare(a.name))
+                                    .map((ex: any) => (
                                     <div key={ex.id} onClick={() => { setSelectedExercise(ex); setShowExerciseModal(true); }} className={styles.exerciseCard}>
                                         <h4 className={styles.exerciseTitle}>{ex.name}</h4>
                                         {ex.description && <p className={styles.exerciseDesc}>{ex.description.slice(0, 80)}</p>}

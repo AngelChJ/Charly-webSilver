@@ -26,7 +26,7 @@ interface Props {
 export default function ExerciseModal({ exercise, onClose, onSaved }: Props) {
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
-    const [focusId, setFocusId] = useState<number>(1);
+    const [focusId, setFocusId] = useState<number>(0);
     const [videoUrl, setVideoUrl] = useState('');
     const [focuses, setFocuses] = useState<Focus[]>([]);
     const [loading, setLoading] = useState(true);
@@ -89,6 +89,11 @@ export default function ExerciseModal({ exercise, onClose, onSaved }: Props) {
     const handleSave = async () => {
         if (!name.trim()) {
             setError('El nombre del ejercicio es obligatorio.');
+            return;
+        }
+
+        if (!focusId) {
+            setError('Selecciona un grupo muscular.');
             return;
         }
 
@@ -183,6 +188,7 @@ export default function ExerciseModal({ exercise, onClose, onSaved }: Props) {
                                     className={styles.select}
                                     style={{ flex: 1 }}
                                 >
+                                    <option value={0} disabled>Seleccionar grupo...</option>
                                     {focuses.map((f) => (
                                         <option key={f.id} value={f.id}>{f.name}</option>
                                     ))}
