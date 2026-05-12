@@ -49,7 +49,11 @@ export default function Dashboard() {
         return todayDay.exercises.map((ex: any) => ({
             id: ex.id,
             name: ex.exercise?.name ?? 'Ejercicio sin nombre',
-            sets: [{ weight: 0, reps: ex.reps || 10, done: false }],
+            sets: Array.from({ length: ex.sets || 1 }, () => ({
+                weight: 0,
+                reps: ex.reps || 10,
+                done: false,
+            })),
         }));
     }, [todayDay]);
 

@@ -12,6 +12,7 @@ interface ExerciseItem {
     description: string;
     focus_id: number;
     video_url: string;
+    focus_name: string;
   };
 }
 
@@ -34,6 +35,7 @@ export function useWorkout(userId: number | string | undefined) {
 
   useEffect(() => {
     if (!userId) { setLoading(false); return; }
+    // ✅ Llamar a /api/workout (la rutina activa), NO a /api/exercises
     api('/api/workout')
       .then(data => setPlan(data))
       .catch(err => setError(err.message))
