@@ -7,7 +7,6 @@
     font-family: system-ui, -apple-system, sans-serif;
 }
 
-/* ─── Header ─── */
 .header {
     padding: 1.5rem 2rem;
     border-bottom: 1px solid rgba(188, 198, 204, 0.06);
@@ -46,14 +45,12 @@
     -webkit-text-fill-color: transparent;
 }
 
-/* ─── Contenido ─── */
 .content {
     padding: 2rem;
     max-width: 1200px;
     margin: 0 auto;
 }
 
-/* ─── Controles ─── */
 .controls {
     display: flex;
     gap: 1rem;
@@ -101,7 +98,11 @@
     min-width: 180px;
 }
 
-/* ─── Resultados ─── */
+.filterSelect option {
+    background: #0a0a0a;
+    color: #BCC6CC;
+}
+
 .resultCount {
     font-size: 0.8rem;
     color: #555;
@@ -166,7 +167,6 @@
     letter-spacing: 0.03em;
 }
 
-/* ─── Estados ─── */
 .loading {
     text-align: center;
     color: #666;
@@ -182,4 +182,18 @@
 .emptyIcon {
     margin-bottom: 1rem;
     opacity: 0.3;
+}
+
+@media (max-width: 640px) {
+    .content {
+        padding: 1rem;
+    }
+
+    .controls {
+        flex-direction: column;
+    }
+
+    .grid {
+        grid-template-columns: 1fr;
+    }
 }
