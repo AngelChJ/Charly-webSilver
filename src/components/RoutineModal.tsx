@@ -56,9 +56,9 @@ export default function RoutineModal({ athleteId, athleteName, existingPlan, onC
                 day_label: d.day_label,
                 sort_order: d.sort_order,
                 exercises: d.exercises?.map((ex: any) => ({
-                    exercise_id: ex.exercise_id,
-                    sets: ex.sets,
-                    reps: ex.reps,
+                    exercise_id: ex.exercise_id || ex.exercise?.id || ex.id,
+                    sets: ex.sets || 3,
+                    reps: ex.reps || 10,
                     rest_seconds: ex.rest_seconds || 90,
                     sort_order: ex.sort_order || 1,
                 })) || [],
