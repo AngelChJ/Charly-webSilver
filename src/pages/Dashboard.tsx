@@ -167,7 +167,7 @@ export default function Dashboard() {
             })
             .catch(() => { })
             .finally(() => setSessionCheckLoading(false));
-    }, [user?.id]);
+    }, [user?.id, alreadyTrained]);
 
     const WEEK_DATA = useMemo(() => {
         const today = new Date();
@@ -333,9 +333,15 @@ export default function Dashboard() {
                         </div>
                         <div className={styles.actionCard}>
                             <p>¿Alguna duda con la técnica?</p>
-                            <button className={styles.whatsappBtn}>
+                            <a
+                                href="https://wa.me/+522216395801?text=Hola%20Charly%2C%20tengo%20una%20duda%20con%20mi%20rutina"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={styles.whatsappBtn}
+                                style={{ textDecoration: 'none' }}
+                            >
                                 <MessageCircle size={14} /> CONTACTAR A CHARLY
-                            </button>
+                            </a>
                         </div>
                     </aside>
                 </div>
