@@ -25,23 +25,24 @@ export default function Profile() {
 
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
     const [changingPassword, setChangingPassword] = useState(false);
     const [passwordChanged, setPasswordChanged] = useState(false);
     const [passwordError, setPasswordError] = useState('');
 
+    // Cargar suscripción activa desde /api/me
     useEffect(() => {
         if (!user?.id) return;
-        api('/api/athletes')
-            .then((data: any[]) => {
-                const athlete = data.find((a: any) => a.id === user.id);
-                if (athlete?.sub_end && athlete?.sub_active) {
+        api('/api/me')
+            .then((data: any) => {
+                if (data.sub_end && data.sub_active) {
                     setSubscription({
-                        plan_type: athlete.plan_type || 'premium',
-                        end_date: athlete.sub_end,
+                        plan_type: data.plan_type || 'premium',
+                        end_date: data.sub_end,
                     });
                 }
             })
-            .catch(() => { });
+            .catch(() => {});
     }, [user?.id]);
 
     useEffect(() => {
@@ -69,8 +70,12 @@ export default function Profile() {
     };
 
     const handleChangePassword = async () => {
-        if (!currentPassword || !newPassword) {
-            setPasswordError('Llena ambos campos.');
+        if (!currentPassword || !newPassword || !confirmPassword) {
+            setPasswordError('Llena todos los campos.');
+            return;
+        }
+        if (newPassword !== confirmPassword) {
+            setPasswordError('Las contraseñas no coinciden.');
             return;
         }
         if (newPassword.length < 8) {
@@ -90,6 +95,7 @@ export default function Profile() {
             setPasswordChanged(true);
             setCurrentPassword('');
             setNewPassword('');
+            setConfirmPassword('');
             setTimeout(() => setPasswordChanged(false), 3000);
         } catch (err: any) {
             setPasswordError(err.message);
@@ -243,6 +249,13 @@ export default function Profile() {
                         placeholder="Nueva contraseña (mín. 8 caracteres, letra y número)"
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
+                        className={styles.passwordInput}
+                    />
+                    <input
+                        type="password"
+                        placeholder="Confirmar nueva contraseña"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
                         className={styles.passwordInput}
                     />
                     <button

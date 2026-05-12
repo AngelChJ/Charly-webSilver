@@ -318,6 +318,25 @@ app.put('/api/profile', auth, async (req, res) => {
   }
 });
 
+// Datos del usuario autenticado (con suscripción)
+app.get('/api/me', auth, async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT u.id, u.name, u.email, u.role, u.age, u.weight_kg, u.height_cm, u.gender, u.goal, u.plan_type,
+              s.end_date as sub_end, s.is_active as sub_active
+       FROM users u
+       LEFT JOIN subscriptions s ON u.id = s.user_id AND s.is_active = true
+       WHERE u.id = $1`,
+      [req.user.id]
+    );
+    if (rows.length === 0) return res.status(404).json({ error: 'Usuario no encontrado' });
+    res.json(rows[0]);
+  } catch (err) {
+    console.error('Error en GET /api/me:', err.message);
+    res.status(500).json({ error: safeError(err) });
+  }
+});
+
 // Cambiar contraseña
 app.put('/api/change-password', auth, async (req, res) => {
   try {
@@ -721,6 +740,24 @@ app.post('/api/reset-password', async (req, res) => {
     res.status(500).json({ error: safeError(err) });
   }
 });
+// Obtener atleta por ID (coach)
+app.get('/api/athletes/:id', auth, coachOnly, async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT u.*, s.end_date as sub_end, s.is_active as sub_active
+       FROM users u
+       LEFT JOIN subscriptions s ON u.id = s.user_id AND s.is_active = true
+       WHERE u.id = $1 AND u.role = 'athlete'`,
+      [req.params.id]
+    );
+    if (rows.length === 0) return res.status(404).json({ error: 'Atleta no encontrado' });
+    res.json(rows[0]);
+  } catch (err) {
+    console.error('Error en GET /api/athletes/:id:', err.message);
+    res.status(500).json({ error: safeError(err) });
+  }
+});
+
 // Eliminar atleta (coach)
 app.delete('/api/athletes/:id', auth, coachOnly, async (req, res) => {
   try {

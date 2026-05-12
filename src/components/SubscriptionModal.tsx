@@ -34,9 +34,7 @@ export default function SubscriptionModal({ athleteId, athleteName, onClose, onS
 
     const loadCurrentSubscription = async () => {
         try {
-            // Obtener perfil del atleta para ver su plan actual
-            const athletes = await api('/api/athletes');
-            const athlete = athletes.find((a: any) => a.id === parseInt(athleteId));
+            const athlete = await api(`/api/athletes/${athleteId}`);
 
             if (athlete?.sub_end && athlete?.sub_active) {
                 setCurrentPlan({
