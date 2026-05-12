@@ -94,6 +94,13 @@ export default function Login() {
                         />
                     </div>
 
+                    {/* Enlace para recuperar contraseña */}
+                    <div style={{ textAlign: 'right', marginBottom: '0.5rem' }}>
+                        <Link to="/forgot-password" style={{ color: '#666', fontSize: '0.75rem', textDecoration: 'none', letterSpacing: '0.05em' }}>
+                            ¿Olvidaste tu contraseña?
+                        </Link>
+                    </div>
+
                     {!isLoading ? (
                         <button type="submit" className={styles.AccessBtn}>
                             ENTRAR <ArrowRight size={20} />
