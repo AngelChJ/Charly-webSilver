@@ -406,6 +406,23 @@ app.delete('/api/exercises/:id', auth, coachOnly, async (req, res) => {
   }
 });
 
+// Crear grupo muscular (coach)
+app.post('/api/exercise-focus', auth, coachOnly, async (req, res) => {
+  try {
+    const { name } = req.body;
+    if (!validateString(name, 100)) return res.status(400).json({ error: 'Nombre inválido' });
+
+    const { rows } = await pool.query(
+      'INSERT INTO exercise_focus (name) VALUES ($1) ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name RETURNING id',
+      [name.trim()]
+    );
+    res.json({ success: true, id: rows[0].id });
+  } catch (err) {
+    console.error('Error al crear grupo:', err.message);
+    res.status(500).json({ error: safeError(err) });
+  }
+});
+
 // Rutinas
 app.get('/api/workout', auth, async (req, res) => {
   try {
@@ -422,10 +439,9 @@ app.get('/api/workout', auth, async (req, res) => {
 
     const daysWithExercises = await Promise.all(days.map(async (day) => {
       const { rows: exercisesRaw } = await pool.query(
-        `SELECT pe.*, e.id as ex_id, e.name as ex_name, e.description as ex_description, e.video_url as ex_video_url, e.focus_id as ex_focus_id, ef.name as ex_focus_name
+        `SELECT pe.*, e.id as ex_id, e.name as ex_name, e.description as ex_description, e.video_url as ex_video_url, e.focus_id as ex_focus_id 
          FROM plan_exercises pe 
          JOIN exercises e ON pe.exercise_id = e.id 
-         LEFT JOIN exercise_focus ef ON e.focus_id = ef.id
          WHERE pe.day_id = $1 
          ORDER BY pe.sort_order`,
         [day.id]
@@ -441,7 +457,6 @@ app.get('/api/workout', auth, async (req, res) => {
           name: row.ex_name,
           description: row.ex_description,
           focus_id: row.ex_focus_id,
-          focus_name: row.ex_focus_name,
           video_url: row.ex_video_url,
         },
       }));
@@ -522,10 +537,9 @@ app.get('/api/workout/:userId', auth, coachOnly, async (req, res) => {
 
     const daysWithExercises = await Promise.all(days.map(async (day) => {
       const { rows: exercisesRaw } = await pool.query(
-        `SELECT pe.*, e.id as ex_id, e.name as ex_name, e.description as ex_description, e.video_url as ex_video_url, e.focus_id as ex_focus_id, ef.name as ex_focus_name
+        `SELECT pe.*, e.id as ex_id, e.name as ex_name, e.description as ex_description, e.video_url as ex_video_url, e.focus_id as ex_focus_id 
          FROM plan_exercises pe 
          JOIN exercises e ON pe.exercise_id = e.id 
-         LEFT JOIN exercise_focus ef ON e.focus_id = ef.id
          WHERE pe.day_id = $1 ORDER BY pe.sort_order`,
         [day.id]
       );
@@ -540,7 +554,6 @@ app.get('/api/workout/:userId', auth, coachOnly, async (req, res) => {
           name: row.ex_name,
           description: row.ex_description,
           focus_id: row.ex_focus_id,
-          focus_name: row.ex_focus_name,
           video_url: row.ex_video_url,
         },
       }));

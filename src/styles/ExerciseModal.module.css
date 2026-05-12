@@ -111,6 +111,7 @@
 }
 
 .select {
+    /* ... tus estilos actuales ... */
     width: 100%;
     padding: 0.75rem 1rem;
     border-radius: 10px;
@@ -123,10 +124,49 @@
     outline: none;
     appearance: none;
     transition: border-color 0.2s ease;
+    cursor: pointer;
 }
 
-.select:focus {
-    border-color: rgba(188, 198, 204, 0.3);
+/* 🔥 NUEVO: Forzar estilos en las opciones del select */
+.select option {
+    background: #0a0a0a;
+    color: #BCC6CC;
+}
+
+
+/* Estilos para el input de nuevo grupo */
+.newGroupInput {
+    flex: 1;
+    min-width: 120px;
+    padding: 0.4rem 0.5rem;
+    border-radius: 6px;
+    border: 1px solid rgba(188, 198, 204, 0.08);
+    background: #0a0a0a;
+    color: #BCC6CC;
+    font-size: 0.7rem;
+    font-family: inherit;
+    outline: none;
+}
+
+.newGroupBtn {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.4rem 0.75rem;
+    border-radius: 6px;
+    border: 1px solid rgba(188, 198, 204, 0.15);
+    background: rgba(188, 198, 204, 0.06);
+    color: #BCC6CC;
+    font-size: 0.65rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+}
+
+.newGroupBtn:hover {
+    background: rgba(188, 198, 204, 0.1);
 }
 
 /* Selector de Archivos (Video) */
