@@ -17,6 +17,7 @@ const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Progress = lazy(() => import('./pages/Progress'));
 const Profile = lazy(() => import('./pages/Profile'));
 const CoachDashboard = lazy(() => import('./pages/CoachDashboard'));
+const Exercises = lazy(() => import('./pages/Exercises'));
 
 function App() {
   return (
@@ -33,6 +34,9 @@ function App() {
           } />
           <Route path="/progress" element={
             <ProtectedRoute><Progress /></ProtectedRoute>
+          } />
+          <Route path="/exercises" element={
+            <ProtectedRoute><Exercises /></ProtectedRoute>
           } />
           <Route path="/coach" element={
             <CoachRoute><CoachDashboard /></CoachRoute>
