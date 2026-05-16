@@ -29,7 +29,6 @@ const Home = () => {
 
     const whatsappGeneral = `https://wa.me/${COACH_WHATSAPP}?text=Hola%20Charly%2C%20estoy%20interesado%20en%20uno%20de%20tus%20planes%20de%20entrenamiento%2C%20podr%C3%ADas%20darme%20m%C3%A1s%20informaci%C3%B3n`;
 
-    const whatsappPlan = `https://wa.me/${COACH_WHATSAPP}?text=${planes[planSeleccionado]?.mensaje}`;
 
     return (
         <div className={styles.container}>
@@ -90,30 +89,7 @@ const Home = () => {
                         </div>
                     ))}
                 </div>
-                <div style={{ textAlign: 'center', marginTop: '2rem' }}>
-                    <a
-                        href={whatsappPlan}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '0.75rem',
-                            padding: '0.875rem 2rem',
-                            borderRadius: '50px',
-                            background: 'linear-gradient(180deg, #ffffffb9 0%, #BCC6CC 50%, #808080 100%)',
-                            color: '#000',
-                            fontSize: '0.75rem',
-                            fontWeight: 800,
-                            letterSpacing: '0.1em',
-                            textDecoration: 'none',
-                            boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
-                            transition: 'all 0.3s ease'
-                        }}
-                    >
-                        <MessageCircle size={18} /> QUIERO EL {planes[planSeleccionado]?.nombre}
-                    </a>
-                </div>
+
             </section>
 
             <section id="contacto" className={styles.aboutSection}>
