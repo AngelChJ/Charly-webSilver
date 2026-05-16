@@ -1,12 +1,11 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Zap, Activity, Dumbbell, Heart, ArrowRight, MessageCircle } from 'lucide-react';
+import {
+    Zap, Activity, Dumbbell, Heart,
+    ArrowRight, MessageCircle
+} from 'lucide-react';
 import { TarjetaPrograma, TarjetaPrecio } from '../components/ui/Tarjetas';
 import styles from '../styles/Home.module.css';
-
-// Datos del coach
-const COACH_WHATSAPP = '+522216395801';
-const COACH_INSTAGRAM = 'https://www.instagram.com/04carlosr/';
 
 const Home = () => {
     const [progActivo, setProgActivo] = useState(0);
@@ -25,10 +24,11 @@ const Home = () => {
         { id: 2, nombre: "PLAN AVANZADO", precio: "1800", beneficios: ["Todo lo anterior", "Acompañamiento personalizado", "Suplementación"], mensaje: "Hola%20Charly%2C%20me%20interesa%20saber%20m%C3%A1s%20sobre%20el%20plan%20avanzado" }
     ];
 
-    // URL genérica de WhatsApp (hero)
+    const COACH_WHATSAPP = '+522216395801';
+    const COACH_INSTAGRAM = 'https://www.instagram.com/04carlosr/';
+
     const whatsappGeneral = `https://wa.me/${COACH_WHATSAPP}?text=Hola%20Charly%2C%20estoy%20interesado%20en%20uno%20de%20tus%20planes%20de%20entrenamiento%2C%20podr%C3%ADas%20darme%20m%C3%A1s%20informaci%C3%B3n`;
 
-    // URL de WhatsApp del plan seleccionado
     const whatsappPlan = `https://wa.me/${COACH_WHATSAPP}?text=${planes[planSeleccionado]?.mensaje}`;
 
     return (
@@ -70,16 +70,19 @@ const Home = () => {
                 </div>
             </section>
 
-            <section id="planes" className={styles.section}>
-                <h2 className={styles.sectionTitle} style={{ justifyContent: 'center' }}>
-                    NUESTROS <span className={styles.accentWord}>PLANES</span>
-                </h2>
-                <p style={{ textAlign: 'center', fontSize: '0.625rem', color: '#666', letterSpacing: '0.2em', marginBottom: '3rem', fontWeight: 600 }}>
-                    SELECCIONA EL TUYO AHORA
-                </p>
+            <section id="planes" className={`${styles.section} text-center`}>
+                <h2 className={`${styles.sectionTitle} justify-center mb-4`}>NUESTROS <span className={styles.accentWord}>PLANES</span></h2>
+                <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-20">SELECCIONA EL TUYO AHORA</p>
                 <div className={styles.gridPricing}>
                     {planes.map((p) => (
-                        <div key={p.id} onClick={() => setPlanSeleccionado(p.id)}>
+                        <div
+                            key={p.id}
+                            onClick={() => {
+                                setPlanSeleccionado(p.id);
+                                window.open(`https://wa.me/${COACH_WHATSAPP}?text=${p.mensaje}`, '_blank');
+                            }}
+                            style={{ cursor: 'pointer' }}
+                        >
                             <TarjetaPrecio
                                 {...p}
                                 popular={planSeleccionado === p.id}
@@ -87,7 +90,6 @@ const Home = () => {
                         </div>
                     ))}
                 </div>
-                {/* Botón para contactar por el plan seleccionado */}
                 <div style={{ textAlign: 'center', marginTop: '2rem' }}>
                     <a
                         href={whatsappPlan}
