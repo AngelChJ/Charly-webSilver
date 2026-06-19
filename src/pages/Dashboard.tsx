@@ -1,5 +1,5 @@
 import { useNavigate, Link, useLocation } from 'react-router-dom';
-import { Dumbbell, Check, User, LogOut, TrendingUp, Menu, X, Flag, MessageCircle, Loader, Plus, Trash2 } from 'lucide-react';
+import { Dumbbell, Check, User, LogOut, TrendingUp, Menu, X, Flag, MessageCircle, Loader, Plus, Trash2, BookOpen } from 'lucide-react';
 import styles from '../styles/Dashboard.module.css';
 import { api } from '../lib/api';
 import { useWorkout } from '../hooks/useWorkout';
@@ -210,6 +210,9 @@ export default function Dashboard() {
                 <nav className={styles.menu}>
                     <Link to="/dashboard" className={location.pathname === '/dashboard' ? styles.menuItemActive : styles.menuItem} onClick={() => setMenuOpen(false)}>
                         <Dumbbell size={20} /> MI PLAN
+                    </Link>
+                    <Link to="/my-plan" className={location.pathname === '/my-plan' ? styles.menuItemActive : styles.menuItem} onClick={() => setMenuOpen(false)}>
+                        <BookOpen size={20} /> MI PLAN COMPLETO
                     </Link>
                     <Link to="/exercises" className={location.pathname === '/exercises' ? styles.menuItemActive : styles.menuItem} onClick={() => setMenuOpen(false)}>
                         <Dumbbell size={20} /> EJERCICIOS

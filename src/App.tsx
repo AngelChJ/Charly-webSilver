@@ -18,6 +18,7 @@ const Progress = lazy(() => import('./pages/Progress'));
 const Profile = lazy(() => import('./pages/Profile'));
 const CoachDashboard = lazy(() => import('./pages/CoachDashboard'));
 const Exercises = lazy(() => import('./pages/Exercises'));
+const MyPlan = lazy(() => import('./pages/MyPlan'));
 
 function App() {
   return (
@@ -28,6 +29,9 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/dashboard" element={
             <ProtectedRoute><Dashboard /></ProtectedRoute>
+          } />
+          <Route path="/my-plan" element={
+            <ProtectedRoute><MyPlan /></ProtectedRoute>
           } />
           <Route path="/profile" element={
             <ProtectedRoute><Profile /></ProtectedRoute>
